@@ -126,17 +126,17 @@ export default async function Home() {
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {statCards.map((card) => (
-            <article
-              key={card.label}
-              className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
-            >
-              <p className="text-sm font-medium text-slate-400">{card.label}</p>
-              <p className="mt-3 text-4xl font-bold text-white">{card.value}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                {card.detail}
-              </p>
-            </article>
-          ))}
+  <article
+    key={card.label}
+    className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
+  >
+    <p className="text-sm font-medium text-slate-400">{card.label}</p>
+    <p className="mt-3 text-4xl font-bold text-white">{card.value}</p>
+    <p className="mt-2 text-sm leading-6 text-slate-400">
+      {card.detail}
+    </p>
+  </article>
+))}
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[2fr_1fr]">
@@ -179,10 +179,11 @@ export default async function Home() {
       <div className="mt-4 space-y-3">
         {cardsForStage.length > 0 ? (
           cardsForStage.map((card) => (
-            <article
-              key={card.id}
-              className="rounded-xl border border-slate-700 bg-slate-900 p-4"
-            >
+            <Link
+  key={card.id}
+  href={`/patients/${card.id}`}
+  className="block rounded-xl border border-slate-700 bg-slate-900 p-4 transition hover:border-cyan-300/60 hover:bg-slate-800"
+>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-white">
@@ -224,7 +225,7 @@ export default async function Home() {
                   </p>
                 ) : null}
               </div>
-            </article>
+            </Link>
           ))
         ) : (
           <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
