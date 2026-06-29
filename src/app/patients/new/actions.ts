@@ -50,13 +50,35 @@ export async function createPatientCard(formData: FormData) {
 
   const payload = {
     patient_display_name: patientDisplayName,
-    stage: String(formData.get("stage") || "Prospective Lead"),
-    level_of_care: String(formData.get("level_of_care") || "").trim() || null,
+
+    // v0.2 outreach / pre-admission fields
+    lead_source: String(formData.get("lead_source") || "").trim() || null,
+    referral_source_name:
+      String(formData.get("referral_source_name") || "").trim() || null,
+    current_location_setting:
+      String(formData.get("current_location_setting") || "").trim() || null,
+    detox_needed: String(formData.get("detox_needed") || "unknown"),
+    detox_referred_to:
+      String(formData.get("detox_referred_to") || "").trim() || null,
+    current_detox: String(formData.get("current_detox") || "").trim() || null,
+    expected_from_detox:
+      String(formData.get("expected_from_detox") || "unknown"),
+    expected_to_admit_after_detox:
+      String(formData.get("expected_to_admit_after_detox") || "unknown"),
+    target_program: String(formData.get("target_program") || "").trim() || null,
+    conversion_status: String(formData.get("conversion_status") || "open"),
+    next_follow_up_due_at:
+      String(formData.get("next_follow_up_due_at") || "") || null,
+
+    // existing movement fields
+    stage: String(formData.get("stage") || "New Inquiry / Lead"),
+    level_of_care: String(formData.get("target_program") || "").trim() || null,
     referral_source:
-      String(formData.get("referral_source") || "").trim() || null,
+      String(formData.get("referral_source_name") || "").trim() || null,
     expected_date: String(formData.get("expected_date") || "") || null,
     expected_time: String(formData.get("expected_time") || "") || null,
-    location_need: String(formData.get("location_need") || "").trim() || null,
+    location_need:
+      String(formData.get("current_location_setting") || "").trim() || null,
     transportation_status:
       String(formData.get("transportation_status") || "pending"),
     insurance_payment_status:
