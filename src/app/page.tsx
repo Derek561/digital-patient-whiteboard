@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import Link from "next/link";
 
 const stages = [
   "Prospective Lead",
@@ -61,6 +61,15 @@ export default async function Home() {
       .lt("next_action_due_at", nowIso)
       .eq("is_archived", false),
   ]);
+
+  const { data: patientCards } = await supabase
+    .from("patient_cards")
+    .select(
+      "id, patient_display_name, stage, level_of_care, expected_date, expected_time, blocker, next_action, priority, clinical_clearance_status",
+    )
+    .eq("is_archived", false)
+    .order("expected_date", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false });
 
   const statCards = [
     {
@@ -153,25 +162,81 @@ export default async function Home() {
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {stages.slice(0, 6).map((stage) => (
-                <div
-                  key={stage}
-                  className="min-h-40 rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      {stage}
-                    </h3>
-                    <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
-                      0
-                    </span>
-                  </div>
+              {stages.slice(0, 6).map((stage) => {
+  const cardsForStage =
+    patientCards?.filter((card) => card.stage === stage) || [];
 
-                  <div className="mt-4 rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
-                    No cards yet.
-                  </div>
+  return (
+    <div
+      key={stage}
+      className="min-h-40 rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-200">{stage}</h3>
+        <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
+          {cardsForStage.length}
+        </span>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {cardsForStage.length > 0 ? (
+          cardsForStage.map((card) => (
+            <article
+              key={card.id}
+              className="rounded-xl border border-slate-700 bg-slate-900 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-white">
+                    {card.patient_display_name}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {card.level_of_care || "LOC not set"}
+                  </p>
                 </div>
-              ))}
+
+                <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-xs font-medium text-cyan-200">
+                  {card.priority}
+                </span>
+              </div>
+
+              <div className="mt-3 space-y-2 text-xs text-slate-300">
+                <p>
+                  <span className="text-slate-500">Expected:</span>{" "}
+                  {card.expected_date || "Not set"}
+                  {card.expected_time ? ` at ${card.expected_time}` : ""}
+                </p>
+
+                <p>
+                  <span className="text-slate-500">Clinical:</span>{" "}
+                  {card.clinical_clearance_status}
+                </p>
+
+                {card.blocker ? (
+                  <p className="text-amber-200">
+                    <span className="text-amber-300">Blocker:</span>{" "}
+                    {card.blocker}
+                  </p>
+                ) : null}
+
+                {card.next_action ? (
+                  <p>
+                    <span className="text-slate-500">Next:</span>{" "}
+                    {card.next_action}
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
+            No cards yet.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+})}
             </div>
           </div>
 
