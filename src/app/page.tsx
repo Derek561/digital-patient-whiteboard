@@ -168,7 +168,7 @@ export default async function Home() {
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {stages.slice(0, 6).map((stage) => {
+              {stages.slice(0, 8).map((stage) => {
   const cardsForStage =
     patientCards?.filter((card) => card.stage === stage) || [];
 
