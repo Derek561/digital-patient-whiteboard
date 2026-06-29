@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
 const statCards = [
   {
     label: "Expected Today",
@@ -36,7 +39,17 @@ const stages = [
   "Closed / No Further Action",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+  
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8">
