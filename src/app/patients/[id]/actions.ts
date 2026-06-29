@@ -134,16 +134,28 @@ export async function updatePatientCard(
     );
   }
 
-  await supabase.from("patient_activity_logs").insert({
-    patient_card_id: patientCardId,
-    activity_type: "updated",
-    summary:
-      changes.length > 0
-        ? `Movement card updated: ${changes[0]}`
-        : "Movement card reviewed with no tracked field changes",
-    detail: changes.join(" | "),
-    created_by: user.id,
-  });
+  const updateNote =
+    changes.length > 0
+      ? changes.join(" | ")
+      : "Movement card reviewed with no tracked field changes";
+
+  const { error: activityLogError } = await supabase
+    .from("patient_activity_logs")
+    .insert({
+      patient_card_id: patientCardId,
+      stage_at_time: stage,
+      update_type: "updated",
+      update_note: updateNote,
+      created_by: user.id,
+    });
+
+  if (activityLogError) {
+    redirect(
+      `/patients/${patientCardId}?message=${encodeURIComponent(
+        `Activity log failed: ${activityLogError.message}`,
+      )}`,
+    );
+  }
 
   redirect("/");
 }

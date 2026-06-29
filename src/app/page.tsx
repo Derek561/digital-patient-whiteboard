@@ -74,11 +74,9 @@ export default async function Home() {
 
      const { data: recentActivityLogs } = await supabase
     .from("patient_activity_logs")
-    .select(
-      "id, activity_type, summary, detail, created_at, patient_cards(patient_display_name)",
-    )
+    .select("id, stage_at_time, update_type, update_note, created_at")
     .order("created_at", { ascending: false })
-    .limit(5);  
+    .limit(5); 
 
    const statCards = [
     {
@@ -255,20 +253,22 @@ export default async function Home() {
                 and what the next action is.
               </p>
 
-              <div className="mt-5 space-y-3">
+             <div className="mt-5 space-y-3">
   {recentActivityLogs && recentActivityLogs.length > 0 ? (
     recentActivityLogs.map((log) => (
       <article
         key={log.id}
         className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm"
       >
-        <p className="font-semibold text-slate-100">{log.summary}</p>
+        <p className="font-semibold text-slate-100">
+          {log.update_type} at {log.stage_at_time}
+        </p>
         <p className="mt-1 text-xs text-slate-500">
           {new Date(log.created_at).toLocaleString()}
         </p>
-        {log.detail ? (
+        {log.update_note ? (
           <p className="mt-2 text-xs leading-5 text-slate-400">
-            {log.detail}
+            {log.update_note}
           </p>
         ) : null}
       </article>
@@ -279,7 +279,7 @@ export default async function Home() {
     </div>
   )}
 </div>
-            </section>
+ </section>
 
             <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-xl font-bold text-white">
