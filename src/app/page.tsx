@@ -1,29 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const statCards = [
-  {
-    label: "Expected Today",
-    value: "0",
-    detail: "Scheduled admissions or arrivals due today",
-  },
-  {
-    label: "Pending Clinical Review",
-    value: "0",
-    detail: "Cards waiting for clinical clearance status",
-  },
-  {
-    label: "Active Blockers",
-    value: "0",
-    detail: "Insurance, transport, documents, or approval issues",
-  },
-  {
-    label: "Overdue Next Actions",
-    value: "0",
-    detail: "Follow-ups past their due date",
-  },
-];
-
 const stages = [
   "Prospective Lead",
   "Pending Verification",
@@ -49,7 +26,64 @@ export default async function Home() {
   if (!session) {
     redirect("/login");
   }
-  
+
+  const today = new Date().toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
+
+  const [
+    expectedTodayResult,
+    pendingClinicalResult,
+    activeBlockersResult,
+    overdueActionsResult,
+  ] = await Promise.all([
+    supabase
+      .from("patient_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("expected_date", today)
+      .eq("is_archived", false),
+
+    supabase
+      .from("patient_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("clinical_clearance_status", "pending")
+      .eq("is_archived", false),
+
+    supabase
+      .from("patient_cards")
+      .select("id", { count: "exact", head: true })
+      .not("blocker", "is", null)
+      .eq("is_archived", false),
+
+    supabase
+      .from("patient_cards")
+      .select("id", { count: "exact", head: true })
+      .lt("next_action_due_at", nowIso)
+      .eq("is_archived", false),
+  ]);
+
+  const statCards = [
+    {
+      label: "Expected Today",
+      value: String(expectedTodayResult.count ?? 0),
+      detail: "Scheduled admissions or arrivals due today.",
+    },
+    {
+      label: "Pending Clinical Review",
+      value: String(pendingClinicalResult.count ?? 0),
+      detail: "Cards waiting for clinical clearance status.",
+    },
+    {
+      label: "Active Blockers",
+      value: String(activeBlockersResult.count ?? 0),
+      detail: "Insurance, transport, documents, or approval issues.",
+    },
+    {
+      label: "Overdue Next Actions",
+      value: String(overdueActionsResult.count ?? 0),
+      detail: "Follow-ups past their due date.",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8">
