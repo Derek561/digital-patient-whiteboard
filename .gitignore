@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Keep safe environment templates in repo
 !.env.local.example
+
+# Keep safe environment templates in repo
+!.env.local.example
