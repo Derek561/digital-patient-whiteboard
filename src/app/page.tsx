@@ -32,34 +32,34 @@ export default async function Home() {
   const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
 
-  const [
-    expectedTodayResult,
-    pendingClinicalResult,
-    activeBlockersResult,
-    overdueActionsResult,
+    const [
+    openLeadsResult,
+    detoxReferralsResult,
+    currentlyInDetoxResult,
+    expectedFromDetoxResult,
   ] = await Promise.all([
     supabase
       .from("patient_cards")
       .select("id", { count: "exact", head: true })
-      .eq("expected_date", today)
+      .eq("conversion_status", "open")
       .eq("is_archived", false),
 
     supabase
       .from("patient_cards")
       .select("id", { count: "exact", head: true })
-      .eq("clinical_clearance_status", "pending")
+      .or("stage.eq.Referred to Detox,detox_needed.eq.yes")
       .eq("is_archived", false),
 
     supabase
       .from("patient_cards")
       .select("id", { count: "exact", head: true })
-      .not("blocker", "is", null)
+      .or("stage.eq.Currently in Detox,current_location_setting.eq.detox")
       .eq("is_archived", false),
 
     supabase
       .from("patient_cards")
       .select("id", { count: "exact", head: true })
-      .lt("next_action_due_at", nowIso)
+      .in("expected_from_detox", ["yes", "maybe"])
       .eq("is_archived", false),
   ]);
 
@@ -72,26 +72,26 @@ export default async function Home() {
     .order("expected_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
-  const statCards = [
+   const statCards = [
     {
-      label: "Expected Today",
-      value: String(expectedTodayResult.count ?? 0),
-      detail: "Scheduled admissions or arrivals due today.",
+      label: "Open Leads",
+      value: String(openLeadsResult.count ?? 0),
+      detail: "Prospective patients still being worked by outreach.",
     },
     {
-      label: "Pending Clinical Review",
-      value: String(pendingClinicalResult.count ?? 0),
-      detail: "Cards waiting for clinical clearance status.",
+      label: "Detox Referrals",
+      value: String(detoxReferralsResult.count ?? 0),
+      detail: "Leads needing detox or already referred to detox.",
     },
     {
-      label: "Active Blockers",
-      value: String(activeBlockersResult.count ?? 0),
-      detail: "Insurance, transport, documents, or approval issues.",
+      label: "Currently in Detox",
+      value: String(currentlyInDetoxResult.count ?? 0),
+      detail: "People currently located in a detox setting.",
     },
     {
-      label: "Overdue Next Actions",
-      value: String(overdueActionsResult.count ?? 0),
-      detail: "Follow-ups past their due date.",
+      label: "Expected From Detox",
+      value: String(expectedFromDetoxResult.count ?? 0),
+      detail: "People expected or possibly expected to come after detox.",
     },
   ];
 
@@ -100,18 +100,16 @@ export default async function Home() {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8">
         <header className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
-            Digital Patient Whiteboard
+            Outreach Movement Board
           </p>
 
           <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white md:text-5xl">
-                Admissions, Movement, Transition, and Aftercare Visibility
+                Outreach, Detox Pathway, Admission Movement, and Follow-Up Visibility
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-                A human-centered operational board for patient movement,
-                accountability, blockers, next actions, activity logs, and
-                role-based visibility.
+                A human-centered operational board for prospective patient movement, lead origin, detox pathway tracking, blockers, next actions, follow-up ownership, and admission readiness.
               </p>
             </div>
 
@@ -149,8 +147,7 @@ export default async function Home() {
                   Patient Movement Board
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Cards will move through lifecycle stages as ownership,
-                  blockers, and next actions change.
+                  Cards move through outreach, detox, and pre-admission stages as ownership, blockers, and next actions change.
                 </p>
               </div>
 
