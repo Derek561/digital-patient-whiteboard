@@ -144,7 +144,7 @@ export default async function Home() {
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-white">
-                  Patient Movement Board
+                  Outreach Movement Board
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
                   Cards move through outreach, detox, and pre-admission stages as ownership, blockers, and next actions change.
@@ -155,7 +155,7 @@ export default async function Home() {
   href="/patients/new"
   className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
 >
-  Add Patient Card
+  Add Movement Card
 </Link>
             </div>
 
