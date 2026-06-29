@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 const stages = [
   "Prospective Lead",
@@ -143,9 +144,12 @@ export default async function Home() {
                 </p>
               </div>
 
-              <button className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200">
-                Add Patient Card
-              </button>
+            <Link
+  href="/patients/new"
+  className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+>
+  Add Patient Card
+</Link>
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-3">
