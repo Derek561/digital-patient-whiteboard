@@ -3,18 +3,19 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const stages = [
-  "Prospective Lead",
-  "Pending Verification",
-  "Pending Clinical Review",
+  "New Inquiry / Lead",
+  "Contact Attempt",
+  "Screening / Qualification",
+  "Detox Needed",
+  "Referred to Detox",
+  "Currently in Detox",
+  "Expected From Detox",
   "Scheduled Admission",
-  "Travel / ETA Confirmed",
-  "Arrived / On Site",
-  "Intake In Progress",
+  "Arrived / Intake",
   "Admitted",
-  "Did Not Admit",
-  "Discharge / Transition Pending",
+  "Did Not Admit / Lost",
   "Aftercare Follow-Up",
-  "Closed / No Further Action",
+  "Closed",
 ];
 
 export default async function Home() {
