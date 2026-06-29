@@ -72,6 +72,14 @@ export default async function Home() {
     .order("expected_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
+     const { data: recentActivityLogs } = await supabase
+    .from("patient_activity_logs")
+    .select(
+      "id, activity_type, summary, detail, created_at, patient_cards(patient_display_name)",
+    )
+    .order("created_at", { ascending: false })
+    .limit(5);  
+
    const statCards = [
     {
       label: "Open Leads",
@@ -247,9 +255,30 @@ export default async function Home() {
                 and what the next action is.
               </p>
 
-              <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-500">
-                No activity logged yet.
-              </div>
+              <div className="mt-5 space-y-3">
+  {recentActivityLogs && recentActivityLogs.length > 0 ? (
+    recentActivityLogs.map((log) => (
+      <article
+        key={log.id}
+        className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm"
+      >
+        <p className="font-semibold text-slate-100">{log.summary}</p>
+        <p className="mt-1 text-xs text-slate-500">
+          {new Date(log.created_at).toLocaleString()}
+        </p>
+        {log.detail ? (
+          <p className="mt-2 text-xs leading-5 text-slate-400">
+            {log.detail}
+          </p>
+        ) : null}
+      </article>
+    ))
+  ) : (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-500">
+      No activity logged yet.
+    </div>
+  )}
+</div>
             </section>
 
             <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">

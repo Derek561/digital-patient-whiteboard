@@ -48,10 +48,13 @@ export async function createPatientCard(formData: FormData) {
     redirect("/patients/new?message=Patient display name is required");
   }
 
+  const stage = String(formData.get("stage") || "New Inquiry / Lead");
+  const nextAction = String(formData.get("next_action") || "").trim() || null;
+  const blocker = String(formData.get("blocker") || "").trim() || null;
+
   const payload = {
     patient_display_name: patientDisplayName,
 
-    // v0.2 outreach / pre-admission fields
     lead_source: String(formData.get("lead_source") || "").trim() || null,
     referral_source_name:
       String(formData.get("referral_source_name") || "").trim() || null,
@@ -70,8 +73,7 @@ export async function createPatientCard(formData: FormData) {
     next_follow_up_due_at:
       String(formData.get("next_follow_up_due_at") || "") || null,
 
-    // existing movement fields
-    stage: String(formData.get("stage") || "New Inquiry / Lead"),
+    stage,
     level_of_care: String(formData.get("target_program") || "").trim() || null,
     referral_source:
       String(formData.get("referral_source_name") || "").trim() || null,
@@ -85,8 +87,8 @@ export async function createPatientCard(formData: FormData) {
       String(formData.get("insurance_payment_status") || "unknown"),
     clinical_clearance_status:
       String(formData.get("clinical_clearance_status") || "not_started"),
-    blocker: String(formData.get("blocker") || "").trim() || null,
-    next_action: String(formData.get("next_action") || "").trim() || null,
+    blocker,
+    next_action: nextAction,
     next_action_due_at:
       String(formData.get("next_action_due_at") || "") || null,
     priority: String(formData.get("priority") || "medium"),
@@ -95,11 +97,32 @@ export async function createPatientCard(formData: FormData) {
     created_by: user.id,
   };
 
-  const { error } = await supabase.from("patient_cards").insert(payload);
+  const { data: createdCard, error } = await supabase
+    .from("patient_cards")
+    .insert(payload)
+    .select("id")
+    .single();
 
-  if (error) {
-    redirect(`/patients/new?message=${encodeURIComponent(error.message)}`);
+  if (error || !createdCard) {
+    redirect(
+      `/patients/new?message=${encodeURIComponent(
+        error?.message || "Patient card creation failed",
+      )}`,
+    );
   }
+
+  await supabase.from("patient_activity_logs").insert({
+    patient_card_id: createdCard.id,
+    activity_type: "created",
+    summary: `Card created in ${stage}`,
+    detail: [
+      nextAction ? `Next action: ${nextAction}` : null,
+      blocker ? `Blocker: ${blocker}` : null,
+    ]
+      .filter(Boolean)
+      .join(" | "),
+    created_by: user.id,
+  });
 
   redirect("/");
 }
