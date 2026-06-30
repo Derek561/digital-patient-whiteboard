@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { updatePatientCard } from "./actions";
+import { archivePatientCard, updatePatientCard } from "./actions";
 
 type PatientDetailPageProps = {
   params: Promise<{
@@ -287,6 +287,53 @@ export default async function PatientDetailPage({
             Save Movement Update
           </button>
         </form>
+
+        <section className="mt-6 rounded-3xl border border-rose-400/30 bg-rose-400/10 p-6">
+  <h2 className="text-xl font-bold text-rose-100">Close / Archive Card</h2>
+
+  <p className="mt-2 text-sm leading-6 text-rose-100/80">
+    Use this only when the card should leave the active outreach board. This
+    does not delete the record.
+  </p>
+
+  <form action={archivePatientCard.bind(null, card.id)} className="mt-5 space-y-4">
+    <label className="flex flex-col gap-2 text-sm text-slate-300">
+      Close Reason
+      <select
+        name="close_reason"
+        required
+        className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
+      >
+        <option value="">Select reason</option>
+        <option value="admitted_to_program">Admitted to program</option>
+        <option value="admitted_elsewhere">Admitted elsewhere</option>
+        <option value="lost_contact">Lost contact</option>
+        <option value="not_appropriate">Not appropriate for program</option>
+        <option value="duplicate">Duplicate card</option>
+        <option value="no_further_action">No further action</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+
+    <label className="flex flex-col gap-2 text-sm text-slate-300">
+      Close Note
+      <textarea
+        name="close_note"
+        rows={3}
+        placeholder="Minimum necessary close note only."
+        className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
+      />
+    </label>
+
+    <button
+      type="submit"
+      className="rounded-xl bg-rose-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-rose-200"
+    >
+      Close and Archive Card
+    </button>
+  </form>
+</section>
+
       </section>
     </main>
   );
