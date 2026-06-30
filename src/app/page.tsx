@@ -11,6 +11,38 @@ type HomePageProps = {
   }>;
 };
 
+type PatientCard = {
+  id: string;
+  patient_display_name: string;
+  stage: string;
+  level_of_care: string | null;
+  expected_date: string | null;
+  expected_time: string | null;
+  blocker: string | null;
+  next_action: string | null;
+  priority: string | null;
+  clinical_clearance_status: string | null;
+  lead_source: string | null;
+  referral_source_name: string | null;
+  current_location_setting: string | null;
+  detox_referred_to: string | null;
+  current_detox: string | null;
+  conversion_status: string | null;
+  assigned_owner: string | null;
+  next_follow_up_due_at: string | null;
+  next_action_due_at: string | null;
+};
+
+type ActivityLog = {
+  id: string;
+  stage_at_time: string | null;
+  update_type: string | null;
+  update_note: string | null;
+  next_action: string | null;
+  next_action_due_at: string | null;
+  created_at: string;
+};
+
 const stages = [
   "New Inquiry / Lead",
   "Contact Attempt",
@@ -49,6 +81,32 @@ const conversionStatusOptions = [
   { value: "closed", label: "Closed" },
 ];
 
+function isOverdue(dateValue: string | null) {
+  if (!dateValue) return false;
+
+  return new Date(dateValue).getTime() < Date.now();
+}
+
+function formatDateTime(dateValue: string | null) {
+  if (!dateValue) return "Not set";
+
+  return new Date(dateValue).toLocaleString();
+}
+
+function formatLeadSource(value: string | null) {
+  if (!value) return "Source not set";
+
+  const match = leadSourceOptions.find((option) => option.value === value);
+
+  return match?.label || value;
+}
+
+function formatShortDate(dateValue: string | null) {
+  if (!dateValue) return "Not set";
+
+  return new Date(dateValue).toLocaleDateString();
+}
+
 export default async function Home({ searchParams }: HomePageProps) {
   const supabase = await createSupabaseServerClient();
 
@@ -65,9 +123,6 @@ export default async function Home({ searchParams }: HomePageProps) {
   const selectedStage = params.stage || "";
   const selectedLeadSource = params.lead_source || "";
   const selectedConversionStatus = params.conversion_status || "";
-
-  const today = new Date().toISOString().slice(0, 10);
-  const nowIso = new Date().toISOString();
 
   const [
     openLeadsResult,
@@ -103,9 +158,14 @@ export default async function Home({ searchParams }: HomePageProps) {
   let patientCardsQuery = supabase
     .from("patient_cards")
     .select(
-      "id, patient_display_name, stage, level_of_care, expected_date, expected_time, blocker, next_action, priority, clinical_clearance_status, lead_source, referral_source_name, current_location_setting, detox_referred_to, current_detox, conversion_status",
+      "id, patient_display_name, stage, level_of_care, expected_date, expected_time, blocker, next_action, priority, clinical_clearance_status, lead_source, referral_source_name, current_location_setting, detox_referred_to, current_detox, conversion_status, assigned_owner, next_follow_up_due_at, next_action_due_at",
     )
-    .eq("is_archived", false);
+    .eq("is_archived", false)
+    .order("next_follow_up_due_at", {
+      ascending: true,
+      nullsFirst: false,
+    })
+    .order("created_at", { ascending: false });
 
   if (selectedStage) {
     patientCardsQuery = patientCardsQuery.eq("stage", selectedStage);
@@ -131,111 +191,119 @@ export default async function Home({ searchParams }: HomePageProps) {
         `current_detox.ilike.%${searchQuery}%`,
         `next_action.ilike.%${searchQuery}%`,
         `blocker.ilike.%${searchQuery}%`,
+        `assigned_owner.ilike.%${searchQuery}%`,
       ].join(","),
     );
   }
 
-  const { data: patientCards } = await patientCardsQuery
-    .order("expected_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  const { data: patientCardsData, error: patientCardsError } =
+    await patientCardsQuery;
 
-  const { data: recentActivityLogs } = await supabase
+  const { data: recentActivityData } = await supabase
     .from("patient_activity_logs")
-    .select("id, stage_at_time, update_type, update_note, created_at")
+    .select(
+      "id, stage_at_time, update_type, update_note, next_action, next_action_due_at, created_at",
+    )
     .order("created_at", { ascending: false })
     .limit(5);
+
+  const patientCards = (patientCardsData || []) as PatientCard[];
+  const recentActivity = (recentActivityData || []) as ActivityLog[];
+
+  const cardsByStage = stages.map((stage) => ({
+    stage,
+    cards: patientCards.filter((card) => card.stage === stage),
+  }));
 
   const statCards = [
     {
       label: "Open Leads",
-      value: String(openLeadsResult.count ?? 0),
-      detail: "Prospective patients still being worked by outreach.",
+      value: openLeadsResult.count || 0,
+      description: "Prospective patients still being worked by outreach.",
     },
     {
       label: "Detox Referrals",
-      value: String(detoxReferralsResult.count ?? 0),
-      detail: "Leads needing detox or already referred to detox.",
+      value: detoxReferralsResult.count || 0,
+      description: "Leads needing detox or already referred to detox.",
     },
     {
       label: "Currently in Detox",
-      value: String(currentlyInDetoxResult.count ?? 0),
-      detail: "People currently located in a detox setting.",
+      value: currentlyInDetoxResult.count || 0,
+      description: "People currently located in a detox setting.",
     },
     {
       label: "Expected From Detox",
-      value: String(expectedFromDetoxResult.count ?? 0),
-      detail: "People expected or possibly expected to come after detox.",
+      value: expectedFromDetoxResult.count || 0,
+      description: "People expected or possibly expected to come after detox.",
     },
   ];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8">
-        <header className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
-            Outreach Movement Board
-          </p>
-
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8">
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-black/30">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white md:text-5xl">
+              <p className="text-xs font-bold uppercase tracking-[0.5em] text-cyan-300">
+                Outreach Movement Board
+              </p>
+              <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
                 Outreach, Detox Pathway, Admission Movement, and Follow-Up
                 Visibility
               </h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
+              <p className="mt-4 max-w-4xl text-sm leading-6 text-slate-300">
                 A human-centered operational board for prospective patient
                 movement, lead origin, detox pathway tracking, blockers, next
                 actions, follow-up ownership, and admission readiness.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100">
-              <p className="font-semibold">Boundary</p>
-              <p className="mt-1 max-w-md">
+            <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+              <p className="font-bold">Boundary</p>
+              <p className="mt-2 max-w-sm leading-5">
                 This tool does not replace Kipu, CRM, or Oceanside Housing
                 census. It is a visibility layer for operational movement and
                 accountability.
               </p>
             </div>
           </div>
-        </header>
+        </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-4">
           {statCards.map((card) => (
-            <article
+            <div
               key={card.label}
               className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
             >
-              <p className="text-sm font-medium text-slate-400">{card.label}</p>
-              <p className="mt-3 text-4xl font-bold text-white">{card.value}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                {card.detail}
+              <p className="text-sm text-slate-400">{card.label}</p>
+              <p className="mt-2 text-4xl font-black text-white">
+                {card.value}
               </p>
-            </article>
+              <p className="mt-3 text-xs leading-5 text-slate-400">
+                {card.description}
+              </p>
+            </div>
           ))}
         </section>
 
-        <form
-          action="/"
-          className="rounded-3xl border border-slate-800 bg-slate-900 p-5"
-        >
-          <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
-            <label className="flex flex-col gap-2 text-sm text-slate-300">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+          <form className="grid gap-3 md:grid-cols-[2fr_1fr_1fr_1fr_auto_auto] md:items-end">
+            <label className="flex flex-col gap-2 text-xs text-slate-400">
               Search
               <input
                 name="q"
                 defaultValue={searchQuery}
-                placeholder="Name, source, detox, blocker, next action"
-                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                placeholder="Name, source, detox, blocker, owner, next action"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
               />
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-slate-300">
+            <label className="flex flex-col gap-2 text-xs text-slate-400">
               Stage
               <select
                 name="stage"
                 defaultValue={selectedStage}
-                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
               >
                 <option value="">All stages</option>
                 {stages.map((stage) => (
@@ -246,207 +314,234 @@ export default async function Home({ searchParams }: HomePageProps) {
               </select>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-slate-300">
+            <label className="flex flex-col gap-2 text-xs text-slate-400">
               Lead Source
               <select
                 name="lead_source"
                 defaultValue={selectedLeadSource}
-                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
               >
-                {leadSourceOptions.map((source) => (
-                  <option key={source.value} value={source.value}>
-                    {source.label}
+                {leadSourceOptions.map((option) => (
+                  <option key={option.label} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-slate-300">
+            <label className="flex flex-col gap-2 text-xs text-slate-400">
               Conversion
               <select
                 name="conversion_status"
                 defaultValue={selectedConversionStatus}
-                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
               >
-                {conversionStatusOptions.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
+                {conversionStatusOptions.map((option) => (
+                  <option key={option.label} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </label>
 
-            <div className="flex items-end gap-2">
-              <button
-                type="submit"
-                className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-              >
-                Search
-              </button>
+            <button
+              type="submit"
+              className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+            >
+              Search
+            </button>
 
-              <Link
-                href="/"
-                className="rounded-xl border border-slate-700 px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-cyan-300 hover:text-cyan-200"
-              >
-                Clear
-              </Link>
-            </div>
-          </div>
-        </form>
+            <Link
+              href="/"
+              className="rounded-xl border border-slate-700 px-5 py-3 text-center text-sm font-bold text-slate-200 transition hover:bg-slate-800"
+            >
+              Clear
+            </Link>
+          </form>
+        </section>
 
-        <section className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {patientCardsError ? (
+          <section className="rounded-2xl border border-rose-400/40 bg-rose-400/10 p-4 text-sm text-rose-100">
+            Unable to load movement cards: {patientCardsError.message}
+          </section>
+        ) : null}
+
+        <section className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-black text-white">
                   Outreach Movement Board
                 </h2>
-                <p className="mt-2 text-xs text-slate-500">
-                  Showing {patientCards?.length ?? 0} active movement card
-                  {(patientCards?.length ?? 0) === 1 ? "" : "s"}.
-                </p>
-                <p className="mt-1 text-sm text-slate-400">
-                  Cards move through outreach, detox, and pre-admission stages
-                  as ownership, blockers, and next actions change.
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Showing {patientCards.length} active movement card
+                  {patientCards.length === 1 ? "" : "s"}. Cards move through
+                  outreach, detox, and pre-admission stages as ownership,
+                  blockers, and next actions change.
                 </p>
               </div>
 
               <Link
                 href="/patients/new"
-                className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+                className="rounded-xl bg-cyan-300 px-5 py-3 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
               >
                 Add Movement Card
               </Link>
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {stages.slice(0, 8).map((stage) => {
-                const cardsForStage =
-                  patientCards?.filter((card) => card.stage === stage) || [];
-
-                return (
-                  <div
-                    key={stage}
-                    className="min-h-40 rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-sm font-semibold text-slate-200">
-                        {stage}
-                      </h3>
-                      <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
-                        {cardsForStage.length}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 space-y-3">
-                      {cardsForStage.length > 0 ? (
-                        cardsForStage.map((card) => (
-                          <Link
-                            key={card.id}
-                            href={`/patients/${card.id}`}
-                            className="block rounded-xl border border-slate-700 bg-slate-900 p-4 transition hover:border-cyan-300/60 hover:bg-slate-800"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="font-semibold text-white">
-                                  {card.patient_display_name}
-                                </p>
-                                <p className="mt-1 text-xs text-slate-400">
-                                  {card.level_of_care || "LOC not set"}
-                                </p>
-                              </div>
-
-                              <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-xs font-medium text-cyan-200">
-                                {card.priority}
-                              </span>
-                            </div>
-
-                            <div className="mt-3 space-y-2 text-xs text-slate-300">
-                              <p>
-                                <span className="text-slate-500">
-                                  Expected:
-                                </span>{" "}
-                                {card.expected_date || "Not set"}
-                                {card.expected_time
-                                  ? ` at ${card.expected_time}`
-                                  : ""}
-                              </p>
-
-                              <p>
-                                <span className="text-slate-500">
-                                  Clinical:
-                                </span>{" "}
-                                {card.clinical_clearance_status}
-                              </p>
-
-                              {card.blocker ? (
-                                <p className="text-amber-200">
-                                  <span className="text-amber-300">
-                                    Blocker:
-                                  </span>{" "}
-                                  {card.blocker}
-                                </p>
-                              ) : null}
-
-                              {card.next_action ? (
-                                <p>
-                                  <span className="text-slate-500">Next:</span>{" "}
-                                  {card.next_action}
-                                </p>
-                              ) : null}
-                            </div>
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
-                          No cards yet.
-                        </div>
-                      )}
-                    </div>
+            <div className="grid gap-4 xl:grid-cols-3">
+              {cardsByStage.map(({ stage, cards }) => (
+                <section
+                  key={stage}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white">{stage}</h3>
+                    <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
+                      {cards.length}
+                    </span>
                   </div>
-                );
-              })}
+
+                  <div className="flex flex-col gap-3">
+                    {cards.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
+                        No cards yet.
+                      </div>
+                    ) : (
+                      cards.map((card) => (
+                        <Link
+                          key={card.id}
+                          href={`/patients/${card.id}`}
+                          className="rounded-xl border border-slate-800 bg-slate-900 p-4 transition hover:border-cyan-300/60 hover:bg-slate-800"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-bold text-white">
+                                {card.patient_display_name}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {card.level_of_care || "LOC not set"}
+                              </p>
+                            </div>
+
+                            <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-xs font-semibold text-cyan-200">
+                              {card.priority || "normal"}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 flex flex-col gap-2 text-xs">
+                            <p className="text-slate-400">
+                              Source:{" "}
+                              <span className="text-slate-200">
+                                {formatLeadSource(card.lead_source)}
+                              </span>
+                            </p>
+
+                            <p className="text-slate-400">
+                              Expected:{" "}
+                              <span className="text-slate-200">
+                                {card.expected_date
+                                  ? `${formatShortDate(card.expected_date)}${
+                                      card.expected_time
+                                        ? ` at ${card.expected_time}`
+                                        : ""
+                                    }`
+                                  : "Not set"}
+                              </span>
+                            </p>
+
+                            <p className="text-slate-400">
+                              Clinical:{" "}
+                              <span className="text-slate-200">
+                                {card.clinical_clearance_status || "not started"}
+                              </span>
+                            </p>
+
+                            <p className="text-slate-400">
+                              Owner:{" "}
+                              <span className="text-slate-200">
+                                {card.assigned_owner || "Unassigned"}
+                              </span>
+                            </p>
+
+                            <p className="text-slate-400">
+                              Follow-up:{" "}
+                              <span className="text-slate-200">
+                                {formatDateTime(card.next_follow_up_due_at)}
+                              </span>
+                            </p>
+
+                            <p className="text-slate-400">
+                              Next:{" "}
+                              <span className="text-slate-200">
+                                {card.next_action || "Not set"}
+                              </span>
+                            </p>
+
+                            {card.blocker ? (
+                              <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-amber-100">
+                                Blocker: {card.blocker}
+                              </p>
+                            ) : null}
+
+                            {isOverdue(card.next_follow_up_due_at) ? (
+                              <p className="rounded-lg border border-rose-400/40 bg-rose-400/10 px-2 py-1 font-semibold text-rose-200">
+                                Follow-up overdue
+                              </p>
+                            ) : null}
+                          </div>
+                        </Link>
+                      ))
+                    )}
+                  </div>
+                </section>
+              ))}
             </div>
           </div>
 
           <aside className="flex flex-col gap-6">
-            <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-              <h2 className="text-xl font-bold text-white">Recent Updates</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <h2 className="text-xl font-black text-white">Recent Updates</h2>
+              <p className="mt-2 text-xs leading-5 text-slate-400">
                 Activity logs will preserve who updated what, when it happened,
                 and what the next action is.
               </p>
 
-              <div className="mt-5 space-y-3">
-                {recentActivityLogs && recentActivityLogs.length > 0 ? (
-                  recentActivityLogs.map((log) => (
-                    <article
-                      key={log.id}
-                      className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm"
+              <div className="mt-5 flex flex-col gap-3">
+                {recentActivity.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
+                    No activity yet.
+                  </div>
+                ) : (
+                  recentActivity.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="rounded-xl border border-slate-800 bg-slate-950 p-4"
                     >
-                      <p className="font-semibold text-slate-100">
-                        {log.update_type} at {log.stage_at_time}
+                      <p className="text-sm font-bold text-white">
+                        {activity.update_type || "updated"} at{" "}
+                        {activity.stage_at_time || "Unknown Stage"}
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
-                        {new Date(log.created_at).toLocaleString()}
+                        {new Date(activity.created_at).toLocaleString()}
                       </p>
-                      {log.update_note ? (
-                        <p className="mt-2 text-xs leading-5 text-slate-400">
-                          {log.update_note}
+                      <p className="mt-3 text-xs leading-5 text-slate-300">
+                        {activity.update_note || "No note recorded."}
+                      </p>
+
+                      {activity.next_action ? (
+                        <p className="mt-2 text-xs text-cyan-200">
+                          Next: {activity.next_action}
                         </p>
                       ) : null}
-                    </article>
+                    </div>
                   ))
-                ) : (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-500">
-                    No activity logged yet.
-                  </div>
                 )}
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-              <h2 className="text-xl font-bold text-white">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <h2 className="text-xl font-black text-white">
                 First Build Spine
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-slate-300">
@@ -460,11 +555,11 @@ export default async function Home({ searchParams }: HomePageProps) {
               </ul>
             </section>
 
-            <section className="rounded-3xl border border-amber-400/30 bg-amber-400/10 p-6">
-              <h2 className="text-xl font-bold text-amber-100">
+            <section className="rounded-2xl border border-amber-300/30 bg-amber-300/10 p-5">
+              <h2 className="text-xl font-black text-amber-100">
                 Minimum Necessary Reminder
               </h2>
-              <p className="mt-2 text-sm leading-6 text-amber-100/80">
+              <p className="mt-3 text-sm leading-6 text-amber-50/90">
                 Operational updates only. Clinical notes, therapy content,
                 diagnoses, and unnecessary PHI stay in the correct system of
                 record.
@@ -472,7 +567,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             </section>
           </aside>
         </section>
-      </section>
+      </div>
     </main>
   );
 }
