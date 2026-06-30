@@ -249,15 +249,47 @@ export default async function PatientDetailPage({
                 </label>
 
                 <label className="flex flex-col gap-2 text-sm text-slate-300">
-                  Next Action Due
-                  <input
-                    name="next_action_due_at"
-                    type="datetime-local"
-                    defaultValue={
-                      card.next_action_due_at
-                        ? card.next_action_due_at.slice(0, 16)
-                        : ""
-                    }
+                  Next Action
+                  <select
+                    name="next_action"
+                    defaultValue={card.next_action || ""}
+                    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  >
+                    <option value="">No next action selected</option>
+                    <option value="Call back needed">Call back needed</option>
+                    <option value="Left voicemail">Left voicemail</option>
+                    <option value="Text sent">Text sent</option>
+                    <option value="Waiting on detox confirmation">
+                      Waiting on detox confirmation
+                    </option>
+                    <option value="Waiting on insurance verification">
+                      Waiting on insurance verification
+                    </option>
+                    <option value="Waiting on transportation plan">
+                      Waiting on transportation plan
+                    </option>
+                    <option value="Confirm discharge window">
+                      Confirm discharge window
+                    </option>
+                    <option value="Confirm discharge window and transportation plan">
+                      Confirm discharge window and transportation plan
+                    </option>
+                    <option value="Follow up tomorrow">
+                      Follow up tomorrow
+                    </option>
+                    <option value="No further action today">
+                      No further action today
+                    </option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-2 text-sm text-slate-300">
+                  Quick Update Note
+                  <textarea
+                    name="quick_update_note"
+                    rows={3}
+                    placeholder="Optional. Minimum necessary only. Example: Left VM with detox admissions office."
                     className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
                   />
                 </label>
@@ -289,51 +321,57 @@ export default async function PatientDetailPage({
         </form>
 
         <section className="mt-6 rounded-3xl border border-rose-400/30 bg-rose-400/10 p-6">
-  <h2 className="text-xl font-bold text-rose-100">Close / Archive Card</h2>
+          <h2 className="text-xl font-bold text-rose-100">
+            Close / Archive Card
+          </h2>
 
-  <p className="mt-2 text-sm leading-6 text-rose-100/80">
-    Use this only when the card should leave the active outreach board. This
-    does not delete the record.
-  </p>
+          <p className="mt-2 text-sm leading-6 text-rose-100/80">
+            Use this only when the card should leave the active outreach board.
+            This does not delete the record.
+          </p>
 
-  <form action={archivePatientCard.bind(null, card.id)} className="mt-5 space-y-4">
-    <label className="flex flex-col gap-2 text-sm text-slate-300">
-      Close Reason
-      <select
-        name="close_reason"
-        required
-        className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
-      >
-        <option value="">Select reason</option>
-        <option value="admitted_to_program">Admitted to program</option>
-        <option value="admitted_elsewhere">Admitted elsewhere</option>
-        <option value="lost_contact">Lost contact</option>
-        <option value="not_appropriate">Not appropriate for program</option>
-        <option value="duplicate">Duplicate card</option>
-        <option value="no_further_action">No further action</option>
-        <option value="other">Other</option>
-      </select>
-    </label>
+          <form
+            action={archivePatientCard.bind(null, card.id)}
+            className="mt-5 space-y-4"
+          >
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Close Reason
+              <select
+                name="close_reason"
+                required
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
+              >
+                <option value="">Select reason</option>
+                <option value="admitted_to_program">Admitted to program</option>
+                <option value="admitted_elsewhere">Admitted elsewhere</option>
+                <option value="lost_contact">Lost contact</option>
+                <option value="not_appropriate">
+                  Not appropriate for program
+                </option>
+                <option value="duplicate">Duplicate card</option>
+                <option value="no_further_action">No further action</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
 
-    <label className="flex flex-col gap-2 text-sm text-slate-300">
-      Close Note
-      <textarea
-        name="close_note"
-        rows={3}
-        placeholder="Minimum necessary close note only."
-        className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
-      />
-    </label>
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Close Note
+              <textarea
+                name="close_note"
+                rows={3}
+                placeholder="Minimum necessary close note only."
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-rose-300"
+              />
+            </label>
 
-    <button
-      type="submit"
-      className="rounded-xl bg-rose-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-rose-200"
-    >
-      Close and Archive Card
-    </button>
-  </form>
-</section>
-
+            <button
+              type="submit"
+              className="rounded-xl bg-rose-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-rose-200"
+            >
+              Close and Archive Card
+            </button>
+          </form>
+        </section>
       </section>
     </main>
   );

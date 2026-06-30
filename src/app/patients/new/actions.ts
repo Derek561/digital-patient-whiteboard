@@ -64,10 +64,12 @@ export async function createPatientCard(formData: FormData) {
     detox_referred_to:
       String(formData.get("detox_referred_to") || "").trim() || null,
     current_detox: String(formData.get("current_detox") || "").trim() || null,
-    expected_from_detox:
-      String(formData.get("expected_from_detox") || "unknown"),
-    expected_to_admit_after_detox:
-      String(formData.get("expected_to_admit_after_detox") || "unknown"),
+    expected_from_detox: String(
+      formData.get("expected_from_detox") || "unknown",
+    ),
+    expected_to_admit_after_detox: String(
+      formData.get("expected_to_admit_after_detox") || "unknown",
+    ),
     target_program: String(formData.get("target_program") || "").trim() || null,
     conversion_status: String(formData.get("conversion_status") || "open"),
     next_follow_up_due_at:
@@ -81,12 +83,15 @@ export async function createPatientCard(formData: FormData) {
     expected_time: String(formData.get("expected_time") || "") || null,
     location_need:
       String(formData.get("current_location_setting") || "").trim() || null,
-    transportation_status:
-      String(formData.get("transportation_status") || "pending"),
-    insurance_payment_status:
-      String(formData.get("insurance_payment_status") || "unknown"),
-    clinical_clearance_status:
-      String(formData.get("clinical_clearance_status") || "not_started"),
+    transportation_status: String(
+      formData.get("transportation_status") || "pending",
+    ),
+    insurance_payment_status: String(
+      formData.get("insurance_payment_status") || "unknown",
+    ),
+    clinical_clearance_status: String(
+      formData.get("clinical_clearance_status") || "not_started",
+    ),
     blocker,
     next_action: nextAction,
     next_action_due_at:
@@ -111,7 +116,7 @@ export async function createPatientCard(formData: FormData) {
     );
   }
 
-    const createNote = [
+  const createNote = [
     `Card created in ${stage}`,
     nextAction ? `Next action: ${nextAction}` : null,
     blocker ? `Blocker: ${blocker}` : null,
@@ -142,5 +147,4 @@ export async function createPatientCard(formData: FormData) {
   }
 
   redirect("/");
-
 }

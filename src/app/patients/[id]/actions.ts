@@ -37,6 +37,8 @@ export async function updatePatientCard(
   const stage = String(formData.get("stage") || "New Inquiry / Lead");
   const blocker = String(formData.get("blocker") || "").trim() || null;
   const nextAction = String(formData.get("next_action") || "").trim() || null;
+  const quickUpdateNote =
+    String(formData.get("quick_update_note") || "").trim() || null;
   const currentLocationSetting =
     String(formData.get("current_location_setting") || "").trim() || null;
   const currentDetox =
@@ -136,8 +138,9 @@ export async function updatePatientCard(
 
   const updateNote =
     changes.length > 0
-      ? changes.join(" | ")
-      : "Movement card reviewed with no tracked field changes";
+      ? `${changes.join(" | ")}${quickUpdateNote ? ` | Note: ${quickUpdateNote}` : ""}`
+      : quickUpdateNote ||
+        "Movement card reviewed with no tracked field changes";
 
   const { error: activityLogError } = await supabase
     .from("patient_activity_logs")
@@ -222,21 +225,21 @@ export async function archivePatientCard(
     );
   }
 
- await supabase.from("patient_activity_logs").insert({
-  patient_card_id: patientCardId,
-  stage_at_time:
-    closeReason === "admitted_to_program"
-      ? "Admitted"
-      : "Closed / No Further Action",
-  update_type: "updated",
-  update_note: `Card closed / archived. Reason: ${closeReason}${
-    closeNote ? ` | Note: ${closeNote}` : ""
-  }`,
-  next_action: null,
-  next_action_due_at: null,
-  confidentiality_check: "Minimum necessary only",
-  created_by: user.id,
-});
+  await supabase.from("patient_activity_logs").insert({
+    patient_card_id: patientCardId,
+    stage_at_time:
+      closeReason === "admitted_to_program"
+        ? "Admitted"
+        : "Closed / No Further Action",
+    update_type: "updated",
+    update_note: `Card closed / archived. Reason: ${closeReason}${
+      closeNote ? ` | Note: ${closeNote}` : ""
+    }`,
+    next_action: null,
+    next_action_due_at: null,
+    confidentiality_check: "Minimum necessary only",
+    created_by: user.id,
+  });
 
   redirect("/");
 }
