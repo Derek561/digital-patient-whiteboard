@@ -51,7 +51,7 @@ export async function createPatientCard(formData: FormData) {
   const stage = String(formData.get("stage") || "New Inquiry / Lead");
   const nextAction = String(formData.get("next_action") || "").trim() || null;
   const blocker = String(formData.get("blocker") || "").trim() || null;
-
+  const quickNote = String(formData.get("quick_note") || "").trim() || null;
   const payload = {
     patient_display_name: patientDisplayName,
 
@@ -132,8 +132,11 @@ export async function createPatientCard(formData: FormData) {
       patient_card_id: createdCard.id,
       stage_at_time: stage,
       update_type: "created",
-      update_note: createNote,
+      update_note: `Card created in ${stage}${
+  nextAction ? ` | Next action: ${nextAction}` : ""
+}${quickNote ? ` | Note: ${quickNote}` : ""}`,
       next_action: nextAction,
+      operational_notes: quickNote,
       next_action_due_at:
         String(formData.get("next_action_due_at") || "") || null,
       confidentiality_check: "Minimum necessary only",
