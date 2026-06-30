@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { archivePatientCard, updatePatientCard } from "./actions";
+import DictationTextarea from "@/components/DictationTextarea";
 
 type PatientDetailPageProps = {
   params: Promise<{
@@ -284,15 +285,13 @@ export default async function PatientDetailPage({
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-300">
-                  Quick Update Note
-                  <textarea
-                    name="quick_update_note"
-                    rows={3}
-                    placeholder="Optional. Minimum necessary only. Example: Left VM with detox admissions office."
-                    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                  />
-                </label>
+               <DictationTextarea
+  name="quick_update_note"
+  label="Quick Update Note"
+  rows={3}
+  placeholder="Optional. Example: Left voicemail with detox admissions office. Follow up tomorrow morning."
+  helperText="Minimum necessary only. Phone users can tap the keyboard microphone. Desktop users can use Start Dictation if available."
+/>
               </div>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">
