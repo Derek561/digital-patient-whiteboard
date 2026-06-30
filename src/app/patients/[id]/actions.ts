@@ -159,3 +159,84 @@ export async function updatePatientCard(
 
   redirect("/");
 }
+
+export async function archivePatientCard(
+  patientCardId: string,
+  formData: FormData,
+) {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
+  }
+
+  const closeReason = String(formData.get("close_reason") || "").trim();
+  const closeNote = String(formData.get("close_note") || "").trim();
+
+  if (!closeReason) {
+    redirect(
+      `/patients/${patientCardId}?message=${encodeURIComponent(
+        "Close reason is required.",
+      )}`,
+    );
+  }
+
+  const conversionStatus =
+    closeReason === "admitted_to_program" ? "admitted" : "closed";
+
+  const { data: existingCard, error: existingError } = await supabase
+    .from("patient_cards")
+    .select("stage")
+    .eq("id", patientCardId)
+    .single();
+
+  if (existingError || !existingCard) {
+    redirect(
+      `/patients/${patientCardId}?message=${encodeURIComponent(
+        existingError?.message || "Unable to load card before closing.",
+      )}`,
+    );
+  }
+
+  const { error } = await supabase
+    .from("patient_cards")
+    .update({
+      is_archived: true,
+      conversion_status: conversionStatus,
+      stage:
+        closeReason === "admitted_to_program"
+          ? "Admitted"
+          : "Closed / No Further Action",
+      operational_notes: closeNote || null,
+    })
+    .eq("id", patientCardId);
+
+  if (error) {
+    redirect(
+      `/patients/${patientCardId}?message=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+ await supabase.from("patient_activity_logs").insert({
+  patient_card_id: patientCardId,
+  stage_at_time:
+    closeReason === "admitted_to_program"
+      ? "Admitted"
+      : "Closed / No Further Action",
+  update_type: "updated",
+  update_note: `Card closed / archived. Reason: ${closeReason}${
+    closeNote ? ` | Note: ${closeNote}` : ""
+  }`,
+  next_action: null,
+  next_action_due_at: null,
+  confidentiality_check: "Minimum necessary only",
+  created_by: user.id,
+});
+
+  redirect("/");
+}
