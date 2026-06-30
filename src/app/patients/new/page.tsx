@@ -25,9 +25,28 @@ const stages = [
   "Closed",
 ];
 
+const nextActionOptions = [
+  "Call back needed",
+  "Left voicemail",
+  "Waiting on response",
+  "Needs screening",
+  "Needs insurance verification",
+  "Needs detox placement",
+  "Confirm detox admission",
+  "Confirm detox discharge",
+  "Confirm transportation",
+  "Schedule admission",
+  "Follow up tomorrow",
+  "Escalate to supervisor",
+  "No further action",
+  "Other",
+];
+
 export default async function NewPatientPage({
   searchParams,
 }: NewPatientPageProps) {
+  const message = (await searchParams)?.message;
+
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -37,9 +56,6 @@ export default async function NewPatientPage({
   if (!session) {
     redirect("/login");
   }
-
-  const params = await searchParams;
-  const message = params?.message;
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
@@ -53,12 +69,11 @@ export default async function NewPatientPage({
             Digital Patient Whiteboard
           </p>
           <h1 className="mt-3 text-3xl font-bold text-white">
-            Add Outreach / Patient Movement Card
+            Quick Capture Movement Card
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Track who is being worked on before admission, where the lead
-            originated, where the person is currently located, whether detox is
-            needed, and what must happen next to move them toward admission.
+            Capture the minimum operational details while the call or outreach
+            contact is active. Full profile details can be completed later.
           </p>
         </header>
 
@@ -73,9 +88,9 @@ export default async function NewPatientPage({
           className="mt-6 grid gap-6 rounded-3xl border border-slate-800 bg-slate-900 p-6"
         >
           <section>
-            <h2 className="text-xl font-bold text-white">Lead Identity</h2>
+            <h2 className="text-xl font-bold text-white">Quick Capture</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Use minimum necessary identifying information.
+              Use this section during live calls. Keep it fast and operational.
             </p>
 
             <div className="mt-4 grid gap-5 md:grid-cols-2">
@@ -103,16 +118,7 @@ export default async function NewPatientPage({
                   ))}
                 </select>
               </label>
-            </div>
-          </section>
 
-          <section>
-            <h2 className="text-xl font-bold text-white">Lead Origin</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Capture where the call, lead, or referral came from.
-            </p>
-
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm text-slate-300">
                 Lead Source
                 <select
@@ -122,39 +128,16 @@ export default async function NewPatientPage({
                 >
                   <option value="">Select source</option>
                   <option value="google_ad">Google Ad</option>
-                  <option value="organic">Organic</option>
-                  <option value="referral_partner">Referral Partner</option>
+                  <option value="outreach">Outreach</option>
                   <option value="family">Family</option>
-                  <option value="alumni">Alumni</option>
-                  <option value="self">Self</option>
                   <option value="provider">Provider</option>
                   <option value="hospital">Hospital</option>
                   <option value="detox">Detox</option>
+                  <option value="self">Self</option>
                   <option value="other">Other</option>
                 </select>
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Referral Source Name
-                <input
-                  name="referral_source_name"
-                  placeholder="Specific person, facility, campaign, or source"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white">
-              Current Location / Detox Pathway
-            </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Track where the person is now and whether detox placement is part
-              of the path.
-            </p>
-
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm text-slate-300">
                 Current Location / Setting
                 <select
@@ -184,6 +167,60 @@ export default async function NewPatientPage({
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </select>
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+                Next Action
+                <select
+                  name="next_action"
+                  defaultValue=""
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                >
+                  <option value="">Select next action</option>
+                  {nextActionOptions.map((action) => (
+                    <option key={action} value={action}>
+                      {action}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-5 grid gap-5">
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+                Quick Note
+                <textarea
+                  name="operational_notes"
+                  rows={4}
+                  placeholder="Short operational note only. No clinical content, diagnoses, or therapy details."
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                />
+              </label>
+            </div>
+          </section>
+
+          <details className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+            <summary className="cursor-pointer text-sm font-bold text-cyan-200">
+              Show advanced details
+            </summary>
+
+            <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+                Referral Source Name
+                <input
+                  name="referral_source_name"
+                  placeholder="Specific person, facility, campaign, or source"
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+                Target Program
+                <input
+                  name="target_program"
+                  placeholder="PHP, IOP, OP, housing, detox referral only"
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                />
               </label>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">
@@ -231,23 +268,6 @@ export default async function NewPatientPage({
                   <option value="no">No</option>
                 </select>
               </label>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white">
-              Program Target / Follow-Up
-            </h2>
-
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Target Program
-                <input
-                  name="target_program"
-                  placeholder="PHP, IOP, OP, housing, detox referral only"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">
                 Conversion Status
@@ -266,15 +286,6 @@ export default async function NewPatientPage({
               </label>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Next Follow-Up Due
-                <input
-                  name="next_follow_up_due_at"
-                  type="datetime-local"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
                 Priority
                 <select
                   name="priority"
@@ -287,132 +298,38 @@ export default async function NewPatientPage({
                   <option value="urgent">Urgent</option>
                 </select>
               </label>
-            </div>
-          </section>
 
-          <section>
-            <h2 className="text-xl font-bold text-white">Admission Readiness</h2>
-
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Expected Admission Date
+                Next Follow-Up Due
                 <input
-                  name="expected_date"
-                  type="date"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Expected Time / ETA
-                <input
-                  name="expected_time"
-                  type="time"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Insurance / Payment
-                <select
-                  name="insurance_payment_status"
-                  defaultValue="unknown"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="unknown">Unknown</option>
-                  <option value="pending">Pending</option>
-                  <option value="verified">Verified</option>
-                  <option value="issue">Issue</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Clinical Clearance
-                <select
-                  name="clinical_clearance_status"
-                  defaultValue="not_started"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="not_started">Not Started</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="denied_referred_out">
-                    Denied / Referred Out
-                  </option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Transportation
-                <select
-                  name="transportation_status"
-                  defaultValue="pending"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="not_needed">Not Needed</option>
-                  <option value="issue">Issue</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Next Action Due
-                <input
-                  name="next_action_due_at"
+                  name="next_follow_up_due_at"
                   type="datetime-local"
                   className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
                 />
               </label>
-            </div>
-          </section>
 
-          <section>
-            <h2 className="text-xl font-bold text-white">
-              Blocker / Next Action
-            </h2>
-
-            <div className="mt-4 grid gap-5">
               <label className="flex flex-col gap-2 text-sm text-slate-300">
                 Blocker
                 <input
                   name="blocker"
-                  placeholder="Example: no answer, detox pending, insurance issue, clinical review needed"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Next Action
-                <input
-                  name="next_action"
-                  placeholder="Example: call referral source, confirm detox admission, follow up tomorrow"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Operational Notes
-                <textarea
-                  name="operational_notes"
-                  rows={4}
-                  placeholder="Minimum necessary operational update only."
+                  placeholder="Insurance, transport, documents, approval, other"
                   className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
                 />
               </label>
             </div>
-          </section>
+          </details>
 
           <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
-            Reminder: do not enter clinical notes, therapy content, diagnoses,
-            trauma details, or unnecessary PHI.
+            Quick capture is for operational movement only. Clinical notes,
+            diagnoses, therapy content, trauma details, and unnecessary PHI stay
+            in the correct system of record.
           </div>
 
           <button
             type="submit"
             className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-            Create Movement Card
+            Save Movement Card
           </button>
         </form>
       </section>
