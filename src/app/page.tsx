@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { signOut } from "@/app/login/actions";
 
 type HomePageProps = {
   searchParams?: Promise<{
@@ -136,6 +137,9 @@ export default async function Home({ searchParams }: HomePageProps) {
   if (!session) {
     redirect("/login");
   }
+
+  const signedInEmail = session.user.email || "Signed in";
+  const renderedAt = new Date().toLocaleString();
 
   const params = (await searchParams) || {};
   const searchQuery = params.q?.trim() || "";
@@ -311,6 +315,29 @@ const workQueueSections = [
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
+        <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
+  <div>
+    <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
+      Staff Session
+    </p>
+    <p className="mt-2 text-sm text-slate-300">
+      Signed in as{" "}
+      <span className="font-semibold text-white">{signedInEmail}</span>
+    </p>
+    <p className="mt-1 text-xs text-slate-500">
+      Page loaded: {renderedAt}
+    </p>
+  </div>
+
+  <form action={signOut}>
+    <button
+      type="submit"
+      className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-rose-300/60 hover:bg-rose-400/10 hover:text-rose-100"
+    >
+      Sign out
+    </button>
+  </form>
+</section>
         <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-black/30">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
