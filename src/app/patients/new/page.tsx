@@ -184,6 +184,16 @@ export default async function NewPatientPage({
                   ))}
                 </select>
               </label>
+
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+  Assigned Owner
+  <input
+    name="assigned_owner"
+    placeholder="Example: Derek, Admissions, Case Manager, Outreach"
+    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+  />
+</label>
+
             </div>
 
             <div className="mt-5 grid gap-5">

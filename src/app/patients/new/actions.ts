@@ -93,6 +93,8 @@ export async function createPatientCard(formData: FormData) {
       formData.get("clinical_clearance_status") || "not_started",
     ),
     blocker,
+    assigned_owner:
+  String(formData.get("assigned_owner") || "").trim() || null,
     next_action: nextAction,
     next_action_due_at:
       String(formData.get("next_action_due_at") || "") || null,
