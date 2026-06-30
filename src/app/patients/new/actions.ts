@@ -111,18 +111,36 @@ export async function createPatientCard(formData: FormData) {
     );
   }
 
-  await supabase.from("patient_activity_logs").insert({
-    patient_card_id: createdCard.id,
-    activity_type: "created",
-    summary: `Card created in ${stage}`,
-    detail: [
-      nextAction ? `Next action: ${nextAction}` : null,
-      blocker ? `Blocker: ${blocker}` : null,
-    ]
-      .filter(Boolean)
-      .join(" | "),
-    created_by: user.id,
-  });
+    const createNote = [
+    `Card created in ${stage}`,
+    nextAction ? `Next action: ${nextAction}` : null,
+    blocker ? `Blocker: ${blocker}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const { error: activityLogError } = await supabase
+    .from("patient_activity_logs")
+    .insert({
+      patient_card_id: createdCard.id,
+      stage_at_time: stage,
+      update_type: "created",
+      update_note: createNote,
+      next_action: nextAction,
+      next_action_due_at:
+        String(formData.get("next_action_due_at") || "") || null,
+      confidentiality_check: "Minimum necessary only",
+      created_by: user.id,
+    });
+
+  if (activityLogError) {
+    redirect(
+      `/patients/new?message=${encodeURIComponent(
+        `Card created, but activity log failed: ${activityLogError.message}`,
+      )}`,
+    );
+  }
 
   redirect("/");
+
 }
