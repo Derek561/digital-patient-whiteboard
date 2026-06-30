@@ -2,6 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+
+type HomePageProps = {
+  searchParams?: Promise<{
+    q?: string;
+    stage?: string;
+    lead_source?: string;
+    conversion_status?: string;
+  }>;
+};
+
 const stages = [
   "New Inquiry / Lead",
   "Contact Attempt",
@@ -18,7 +28,29 @@ const stages = [
   "Closed",
 ];
 
-export default async function Home() {
+const leadSourceOptions = [
+  { value: "", label: "All sources" },
+  { value: "google_ad", label: "Google Ad" },
+  { value: "outreach", label: "Outreach" },
+  { value: "family", label: "Family" },
+  { value: "provider", label: "Provider" },
+  { value: "hospital", label: "Hospital" },
+  { value: "detox", label: "Detox" },
+  { value: "self", label: "Self" },
+  { value: "other", label: "Other" },
+];
+
+const conversionStatusOptions = [
+  { value: "", label: "All statuses" },
+  { value: "open", label: "Open" },
+  { value: "likely", label: "Likely" },
+  { value: "uncertain", label: "Uncertain" },
+  { value: "lost", label: "Lost" },
+  { value: "admitted", label: "Admitted" },
+  { value: "closed", label: "Closed" },
+];
+
+export default async function Home({ searchParams }: HomePageProps) {
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -28,6 +60,12 @@ export default async function Home() {
   if (!session) {
     redirect("/login");
   }
+
+  const params = (await searchParams) || {};
+  const searchQuery = params.q?.trim() || "";
+  const selectedStage = params.stage || "";
+  const selectedLeadSource = params.lead_source || "";
+  const selectedConversionStatus = params.conversion_status || "";
 
   const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
@@ -63,12 +101,42 @@ export default async function Home() {
       .eq("is_archived", false),
   ]);
 
-  const { data: patientCards } = await supabase
+    let patientCardsQuery = supabase
     .from("patient_cards")
     .select(
-      "id, patient_display_name, stage, level_of_care, expected_date, expected_time, blocker, next_action, priority, clinical_clearance_status",
+      "id, patient_display_name, stage, level_of_care, expected_date, expected_time, blocker, next_action, priority, clinical_clearance_status, lead_source, referral_source_name, current_location_setting, detox_referred_to, current_detox, conversion_status",
     )
-    .eq("is_archived", false)
+    .eq("is_archived", false);
+
+  if (selectedStage) {
+    patientCardsQuery = patientCardsQuery.eq("stage", selectedStage);
+  }
+
+  if (selectedLeadSource) {
+    patientCardsQuery = patientCardsQuery.eq("lead_source", selectedLeadSource);
+  }
+
+  if (selectedConversionStatus) {
+    patientCardsQuery = patientCardsQuery.eq(
+      "conversion_status",
+      selectedConversionStatus,
+    );
+  }
+
+  if (searchQuery) {
+    patientCardsQuery = patientCardsQuery.or(
+      [
+        `patient_display_name.ilike.%${searchQuery}%`,
+        `referral_source_name.ilike.%${searchQuery}%`,
+        `detox_referred_to.ilike.%${searchQuery}%`,
+        `current_detox.ilike.%${searchQuery}%`,
+        `next_action.ilike.%${searchQuery}%`,
+        `blocker.ilike.%${searchQuery}%`,
+      ].join(","),
+    );
+  }
+
+  const { data: patientCards } = await patientCardsQuery
     .order("expected_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -145,6 +213,85 @@ export default async function Home() {
 ))}
         </section>
 
+                <form
+          action="/"
+          className="rounded-3xl border border-slate-800 bg-slate-900 p-5"
+        >
+          <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Search
+              <input
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="Name, source, detox, blocker, next action"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Stage
+              <select
+                name="stage"
+                defaultValue={selectedStage}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+              >
+                <option value="">All stages</option>
+                {stages.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {stage}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Lead Source
+              <select
+                name="lead_source"
+                defaultValue={selectedLeadSource}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+              >
+                {leadSourceOptions.map((source) => (
+                  <option key={source.value} value={source.value}>
+                    {source.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Conversion
+              <select
+                name="conversion_status"
+                defaultValue={selectedConversionStatus}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+              >
+                {conversionStatusOptions.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+              >
+                Filter
+              </button>
+
+              <Link
+                href="/"
+                className="rounded-xl border border-slate-700 px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-cyan-300 hover:text-cyan-200"
+              >
+                Clear
+              </Link>
+            </div>
+          </div>
+        </form>
+
         <section className="grid gap-6 xl:grid-cols-[2fr_1fr]">
           <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -152,6 +299,10 @@ export default async function Home() {
                 <h2 className="text-2xl font-bold text-white">
                   Outreach Movement Board
                 </h2>
+                                <p className="mt-2 text-xs text-slate-500">
+                  Showing {patientCards?.length ?? 0} active movement card
+                  {(patientCards?.length ?? 0) === 1 ? "" : "s"}.
+                </p>
                 <p className="mt-1 text-sm text-slate-400">
                   Cards move through outreach, detox, and pre-admission stages as ownership, blockers, and next actions change.
                 </p>
