@@ -20,46 +20,38 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <h1 className="mt-4 text-3xl font-bold text-white">Sign in</h1>
 
         <p className="mt-3 text-sm leading-6 text-slate-400">
-          Enter your approved staff email to receive a secure sign-in link.
+          Enter your approved staff email and password to access the outreach
+          movement board.
         </p>
 
         <form action={signIn} className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-2 text-sm text-slate-300">
-  Email address
-  <input
-    name="email"
-    type="email"
-    required
-    placeholder="staff@example.com"
-    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-  />
-</label>
+            Email address
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="staff@example.com"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+            />
+          </label>
 
-<label className="flex flex-col gap-2 text-sm text-slate-300">
-  Password
-  <input
-    name="password"
-    type="password"
-    required
-    placeholder="Enter password"
-    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-  />
-</label>
-
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            placeholder="staff@example.com"
-            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
-          />
+          <label className="flex flex-col gap-2 text-sm text-slate-300">
+            Password
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="Enter password"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+            />
+          </label>
 
           <button
             type="submit"
             className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-           Sign in
+            Sign in
           </button>
         </form>
 
@@ -70,7 +62,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         ) : null}
 
         <div className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
-          Access will be role-based. This system is separate from Kipu, CRM, and
+          Access is role-based. This system is separate from Kipu, CRM, and
           Oceanside Housing census.
         </div>
       </section>
