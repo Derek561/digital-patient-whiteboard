@@ -3,25 +3,39 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function signInWithEmail(formData: FormData) {
-  const email = String(formData.get("email") || "").trim();
-
-  if (!email) {
-    redirect("/login?message=Email is required");
-  }
-
+export async function signIn(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase.auth.signInWithOtp({
+  const email = String(formData.get("email") || "")
+    .trim()
+    .toLowerCase();
+
+  const password = String(formData.get("password") || "");
+
+  if (!email || !password) {
+    redirect(
+      `/login?message=${encodeURIComponent(
+        "Email and password are required.",
+      )}`,
+    );
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
     email,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
-    },
+    password,
   });
 
   if (error) {
     redirect(`/login?message=${encodeURIComponent(error.message)}`);
   }
 
-  redirect("/login?message=Check your email for the sign-in link");
+  redirect("/");
+}
+
+export async function signOut() {
+  const supabase = await createSupabaseServerClient();
+
+  await supabase.auth.signOut();
+
+  redirect("/login");
 }

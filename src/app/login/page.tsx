@@ -1,4 +1,4 @@
-import { signInWithEmail } from "./actions";
+import { signIn } from "./actions";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -23,10 +23,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           Enter your approved staff email to receive a secure sign-in link.
         </p>
 
-        <form action={signInWithEmail} className="mt-6 flex flex-col gap-4">
-          <label className="text-sm font-medium text-slate-300" htmlFor="email">
-            Email address
-          </label>
+        <form action={signIn} className="mt-6 flex flex-col gap-4">
+          <label className="flex flex-col gap-2 text-sm text-slate-300">
+  Email address
+  <input
+    name="email"
+    type="email"
+    required
+    placeholder="staff@example.com"
+    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+  />
+</label>
+
+<label className="flex flex-col gap-2 text-sm text-slate-300">
+  Password
+  <input
+    name="password"
+    type="password"
+    required
+    placeholder="Enter password"
+    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+  />
+</label>
 
           <input
             id="email"
@@ -41,7 +59,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             type="submit"
             className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-            Send sign-in link
+           Sign in
           </button>
         </form>
 
