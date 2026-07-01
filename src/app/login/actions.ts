@@ -56,11 +56,18 @@ export async function signIn(formData: FormData) {
     );
   }
 
-  if (profile?.role === "outreach") {
-    redirect("/patients/new");
-  }
+const loginEmail = (user.email || "").toLowerCase();
 
-  redirect("/");
+const staffCaptureEmails = [
+  "drew@simplepathrecovery.net",
+  "dominic@simplepathrecovery.net",
+];
+
+if (profile?.role === "outreach" || staffCaptureEmails.includes(loginEmail)) {
+  redirect("/patients/new");
+}
+
+redirect("/");
 }
 
 export async function signOut() {
