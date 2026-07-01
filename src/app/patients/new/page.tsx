@@ -13,18 +13,18 @@ type NewPatientPageProps = {
 const captureTypes = [
   {
     value: "potential_client",
-    label: "Potential Client",
-    helper: "New lead we are working.",
+    label: "New Lead",
+    helper: "New person.",
   },
   {
     value: "referral_source_admission",
-    label: "Referral Source Admission",
-    helper: "Coming from a referral source.",
+    label: "Scheduled Admit",
+    helper: "Scheduled or likely.",
   },
   {
     value: "relapse_detox",
-    label: "Relapse / Detox",
-    helper: "Client or lead in detox.",
+    label: "In Detox",
+    helper: "At detox now.",
   },
 ];
 
@@ -72,7 +72,7 @@ const nextActionOptions = [
   "Confirm transportation",
   "Send to admissions",
   "Waiting on referral source",
-  "Follow up tomorrow",
+  "Due tomorrow",
   "No action yet",
   "Other",
 ];
@@ -107,7 +107,7 @@ export default async function NewPatientPage({
 
         <header className="mt-5 rounded-3xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
-            Outreach Movement Board
+            Movement Board
           </p>
 
           <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
@@ -132,7 +132,7 @@ export default async function NewPatientPage({
         >
           <section>
             <h2 className="text-xl font-black text-white">
-              What are you adding?
+              Pick one
             </h2>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -163,7 +163,7 @@ export default async function NewPatientPage({
 
           <section className="grid gap-5">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Who is it?
+              Name
               <input
                 name="patient_display_name"
                 required
@@ -189,16 +189,16 @@ export default async function NewPatientPage({
             </label>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Other source name
+                Other source
                 <input
                   name="other_source_name"
-                  placeholder="Type source if not listed"
+                  placeholder="Type source name"
                   className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
                 />
               </label>
 
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Where now?
+              Where now
               <select
                 name="current_location_setting"
                 defaultValue="unknown"
@@ -231,7 +231,7 @@ export default async function NewPatientPage({
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Follow up
+              Due
               <input
                 name="next_follow_up_due_at"
                 type="datetime-local"
@@ -242,7 +242,7 @@ export default async function NewPatientPage({
 
           <section className="grid gap-5 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Next step
+              Next
               <select
                 name="next_action"
                 defaultValue="Call back needed"
@@ -275,8 +275,8 @@ export default async function NewPatientPage({
             name="quick_note"
             label="Note"
             rows={5}
-            placeholder="Example: At Banyan. Possible discharge Friday. Drew calls back tomorrow."
-            helperText="Phone tip: use the keyboard mic if needed."
+            placeholder="Example: At Banyan. DC Friday. Drew calls tomorrow."
+            helperText="Use phone mic if needed."
           />
 
           <details className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">

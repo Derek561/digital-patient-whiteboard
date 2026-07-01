@@ -253,7 +253,7 @@ const unassignedCards = patientCards.filter(
 
 const workQueueSections = [
   {
-    title: "Overdue Follow-Ups",
+    title: "Overdue",
     count: overdueCards.length,
     cards: overdueCards,
     emptyText: "No overdue follow-ups.",
@@ -261,7 +261,7 @@ const workQueueSections = [
       "border-rose-400/40 bg-rose-400/10 text-rose-200",
   },
   {
-    title: "Due Today",
+    title: "Today",
     count: dueTodayCards.length,
     cards: dueTodayCards,
     emptyText: "Nothing else due today.",
@@ -345,7 +345,7 @@ const workQueueSections = [
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.5em] text-cyan-300">
-                Outreach Movement Board
+                Movement Board
               </p>
               <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
                 Outreach, Detox Pathway, Admission Movement, and Follow-Up
@@ -359,7 +359,7 @@ const workQueueSections = [
             </div>
 
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-4 text-sm text-cyan-100">
-              <p className="font-bold">Boundary</p>
+              <p className="font-bold">Quick Reminder</p>
               <p className="mt-2 max-w-sm leading-5">
                 This tool does not replace Kipu, CRM, or Oceanside Housing
                 census. It is a visibility layer for operational movement and
@@ -376,7 +376,7 @@ const workQueueSections = [
         Work Queue
       </p>
       <h2 className="mt-2 text-2xl font-black text-white">
-        My Follow-Ups / Overdue Work Queue
+        My Work Queue
       </h2>
       <p className="mt-2 text-xs leading-5 text-slate-400">
         Fast accountability view for follow-ups, overdue items, upcoming work,
@@ -560,7 +560,7 @@ const workQueueSections = [
             <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <h2 className="text-2xl font-black text-white">
-                  Outreach Movement Board
+                  Movement Board
                 </h2>
                 <p className="mt-2 text-xs leading-5 text-slate-400">
                   Showing {patientCards.length} active movement card
@@ -574,7 +574,7 @@ const workQueueSections = [
                 href="/patients/new"
                 className="rounded-xl bg-cyan-300 px-5 py-3 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
               >
-                Add Movement Card
+                Add Lead
               </Link>
             </div>
 
