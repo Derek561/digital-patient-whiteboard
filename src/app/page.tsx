@@ -359,7 +359,7 @@ const workQueueSections = [
             </div>
 
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-4 text-sm text-cyan-100">
-              <p className="font-bold">Quick Reminder</p>
+              <p className="font-bold">Reminder</p>
               <p className="mt-2 max-w-sm leading-5">
                 This tool does not replace Kipu, CRM, or Oceanside Housing
                 census. It is a visibility layer for operational movement and
@@ -563,7 +563,7 @@ const workQueueSections = [
                   Active Leads
                 </h2>
                 <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Showing {patientCards.length} active movement card
+                  Showing {patientCards.length} active lead
                   {patientCards.length === 1 ? "" : "s"}. Cards move through
                   outreach, detox, and pre-admission stages as ownership,
                   blockers, and next actions change.
