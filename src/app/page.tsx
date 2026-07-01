@@ -345,7 +345,7 @@ const workQueueSections = [
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.5em] text-cyan-300">
-                Movement Board
+                Active Leads
               </p>
               <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
                 Outreach, Detox Pathway, Admission Movement, and Follow-Up
@@ -376,7 +376,7 @@ const workQueueSections = [
         Work Queue
       </p>
       <h2 className="mt-2 text-2xl font-black text-white">
-        My Work Queue
+        Follow-Ups
       </h2>
       <p className="mt-2 text-xs leading-5 text-slate-400">
         Fast accountability view for follow-ups, overdue items, upcoming work,
@@ -560,7 +560,7 @@ const workQueueSections = [
             <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <h2 className="text-2xl font-black text-white">
-                  Movement Board
+                  Active Leads
                 </h2>
                 <p className="mt-2 text-xs leading-5 text-slate-400">
                   Showing {patientCards.length} active movement card
