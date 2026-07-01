@@ -60,6 +60,33 @@ const stages = [
   "Closed",
 ];
 
+const movementBuckets = [
+  {
+    title: "Potential Leads",
+    stages: [
+      "New Inquiry / Lead",
+      "Contact Attempt",
+      "Screening / Qualification",
+      "Detox Needed",
+    ],
+  },
+  {
+    title: "In Detox",
+    stages: ["Referred to Detox", "Currently in Detox", "Expected From Detox"],
+  },
+  {
+    title: "Coming In",
+    stages: ["Scheduled Admission", "Arrived / Intake"],
+  },
+];
+
+const secondaryStages = [
+  "Admitted",
+  "Did Not Admit / Lost",
+  "Aftercare Follow-Up",
+  "Closed",
+];
+
 const leadSourceOptions = [
   { value: "", label: "All sources" },
   { value: "google_ad", label: "Google Ad" },
@@ -570,114 +597,137 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-3">
-              {cardsByStage.map(({ stage, cards }) => (
-                <section
-                  key={stage}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white">{stage}</h3>
-                    <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
-                      {cards.length}
-                    </span>
-                  </div>
+              {movementBuckets.map((bucket) => {
+                const cards = cardsByStage
+                  .filter((stageGroup) =>
+                    bucket.stages.includes(stageGroup.stage),
+                  )
+                  .flatMap((stageGroup) => stageGroup.cards);
 
-                  <div className="flex flex-col gap-3">
-                    {cards.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
-                        No cards yet.
+                return (
+                  <section
+                    key={bucket.title}
+                    className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+                  >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-black text-white">
+                        {bucket.title}
+                      </h3>
+                      <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-bold text-slate-300">
+                        {cards.length}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-3">
+                      {cards.length > 0 ? (
+                        cards.map((card) => (
+                          <Link
+                            key={card.id}
+                            href={`/patients/${card.id}`}
+                            className="rounded-2xl border border-slate-700 bg-slate-900 p-4 transition hover:border-cyan-300"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h4 className="text-base font-black text-white">
+                                  {card.patient_display_name}
+                                </h4>
+                                <p className="mt-1 text-xs text-slate-400">
+                                  {card.stage}
+                                </p>
+                              </div>
+
+                              <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-bold text-cyan-200">
+                                {card.priority}
+                              </span>
+                            </div>
+
+                            <div className="mt-3 grid gap-1 text-xs text-slate-300">
+                              <p>
+                                <span className="text-slate-500">Source:</span>{" "}
+                                {card.referral_source_name ||
+                                  formatLeadSource(card.lead_source) ||
+                                  "Not set"}
+                              </p>
+                              <p>
+                                <span className="text-slate-500">Where:</span>{" "}
+                                {card.current_location_setting || "Not set"}
+                              </p>
+                              <p>
+                                <span className="text-slate-500">Owner:</span>{" "}
+                                {card.assigned_owner || "Unassigned"}
+                              </p>
+                              <p>
+                                <span className="text-slate-500">Due:</span>{" "}
+                                {formatShortDate(card.next_follow_up_due_at)}
+                              </p>
+                              <p>
+                                <span className="text-slate-500">Next:</span>{" "}
+                                {card.next_action || "No next step"}
+                              </p>
+                            </div>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-slate-800 p-4 text-sm text-slate-500">
+                          No cards yet.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+
+            <details className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <summary className="cursor-pointer text-sm font-black text-cyan-200">
+                More Stages
+              </summary>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {cardsByStage
+                  .filter((stageGroup) =>
+                    secondaryStages.includes(stageGroup.stage),
+                  )
+                  .map(({ stage, cards }) => (
+                    <section
+                      key={stage}
+                      className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                    >
+                      <div className="mb-4 flex items-center justify-between gap-3">
+                        <h3 className="text-sm font-black text-white">
+                          {stage}
+                        </h3>
+                        <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-bold text-slate-300">
+                          {cards.length}
+                        </span>
                       </div>
-                    ) : (
-                      cards.map((card) => (
-                        <Link
-                          key={card.id}
-                          href={`/patients/${card.id}`}
-                          className="rounded-xl border border-slate-800 bg-slate-900 p-4 transition hover:border-cyan-300/60 hover:bg-slate-800"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
+
+                      <div className="grid gap-3">
+                        {cards.length > 0 ? (
+                          cards.map((card) => (
+                            <Link
+                              key={card.id}
+                              href={`/patients/${card.id}`}
+                              className="rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm transition hover:border-cyan-300"
+                            >
                               <p className="font-bold text-white">
                                 {card.patient_display_name}
                               </p>
                               <p className="mt-1 text-xs text-slate-400">
-                                {card.level_of_care || "LOC not set"}
+                                {card.next_action || "No next step"}
                               </p>
-                            </div>
-
-                            <span className="rounded-full bg-cyan-300/10 px-2 py-1 text-xs font-semibold text-cyan-200">
-                              {card.priority || "normal"}
-                            </span>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="rounded-xl border border-dashed border-slate-800 p-4 text-sm text-slate-500">
+                            No cards yet.
                           </div>
-
-                          <div className="mt-4 flex flex-col gap-2 text-xs">
-                            <p className="text-slate-400">
-                              Source:{" "}
-                              <span className="text-slate-200">
-                                {formatLeadSource(card.lead_source)}
-                              </span>
-                            </p>
-
-                            <p className="text-slate-400">
-                              Expected:{" "}
-                              <span className="text-slate-200">
-                                {card.expected_date
-                                  ? `${formatShortDate(card.expected_date)}${
-                                      card.expected_time
-                                        ? ` at ${card.expected_time}`
-                                        : ""
-                                    }`
-                                  : "Not set"}
-                              </span>
-                            </p>
-
-                            <p className="text-slate-400">
-                              Clinical:{" "}
-                              <span className="text-slate-200">
-                                {card.clinical_clearance_status ||
-                                  "not started"}
-                              </span>
-                            </p>
-
-                            <p className="text-slate-400">
-                              Owner:{" "}
-                              <span className="text-slate-200">
-                                {card.assigned_owner || "Unassigned"}
-                              </span>
-                            </p>
-
-                            <p className="text-slate-400">
-                              Follow-up:{" "}
-                              <span className="text-slate-200">
-                                {formatDateTime(card.next_follow_up_due_at)}
-                              </span>
-                            </p>
-
-                            <p className="text-slate-400">
-                              Next:{" "}
-                              <span className="text-slate-200">
-                                {card.next_action || "Not set"}
-                              </span>
-                            </p>
-
-                            {card.blocker ? (
-                              <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-amber-100">
-                                Blocker: {card.blocker}
-                              </p>
-                            ) : null}
-
-                            {isOverdue(card.next_follow_up_due_at) ? (
-                              <p className="rounded-lg border border-rose-400/40 bg-rose-400/10 px-2 py-1 font-semibold text-rose-200">
-                                Follow-up overdue
-                              </p>
-                            ) : null}
-                          </div>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </section>
-              ))}
-            </div>
+                        )}
+                      </div>
+                    </section>
+                  ))}
+              </div>
+            </details>
           </div>
 
           <aside className="flex flex-col gap-6">
