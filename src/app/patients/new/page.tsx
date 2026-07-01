@@ -10,36 +10,70 @@ type NewPatientPageProps = {
   }>;
 };
 
-const stages = [
-  "New Inquiry / Lead",
-  "Contact Attempt",
-  "Screening / Qualification",
-  "Detox Needed",
-  "Referred to Detox",
-  "Currently in Detox",
-  "Expected From Detox",
-  "Scheduled Admission",
-  "Arrived / Intake",
-  "Admitted",
-  "Did Not Admit / Lost",
-  "Aftercare Follow-Up",
-  "Closed",
+const captureTypes = [
+  {
+    value: "potential_client",
+    label: "Potential Client",
+    helper: "Someone we are working on now.",
+  },
+  {
+    value: "referral_source_admission",
+    label: "Referral Source Admission",
+    helper: "Someone scheduled or likely to come from a referral source.",
+  },
+  {
+    value: "relapse_detox",
+    label: "Relapse / Detox",
+    helper: "Current client or prospect placed in detox.",
+  },
+];
+
+const sourceOptions = [
+  "Allure",
+  "Banyan",
+  "Amethyst",
+  "The Palms",
+  "Still Detox",
+  "Level-Up",
+  "The Best Treatment - TBT",
+  "Beacon",
+  "Family",
+  "Self",
+  "Other",
+  "Unknown",
+];
+
+const locationOptions = [
+  { value: "unknown", label: "Unknown" },
+  { value: "home", label: "Home" },
+  { value: "street_unstable", label: "Street / unstable" },
+  { value: "detox", label: "Detox" },
+  { value: "hospital", label: "Hospital / medical" },
+  { value: "jail", label: "Jail / legal setting" },
+  { value: "using_active_relapse", label: "Using / active relapse" },
+  { value: "with_family", label: "With family" },
+  { value: "other", label: "Other" },
+];
+
+const ownerOptions = [
+  "Derek",
+  "Matt",
+  "Dominic",
+  "Drew",
+  "Admissions",
+  "Outreach",
+  "Case Manager",
 ];
 
 const nextActionOptions = [
   "Call back needed",
-  "Left voicemail",
-  "Waiting on response",
-  "Needs screening",
-  "Needs insurance verification",
-  "Needs detox placement",
-  "Confirm detox admission",
-  "Confirm detox discharge",
+  "Confirm detox placement",
+  "Confirm discharge date",
   "Confirm transportation",
-  "Schedule admission",
+  "Send to admissions",
+  "Waiting on referral source",
   "Follow up tomorrow",
-  "Escalate to supervisor",
-  "No further action",
+  "No action yet",
   "Other",
 ];
 
@@ -59,110 +93,238 @@ export default async function NewPatientPage({
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
-      <section className="mx-auto w-full max-w-5xl">
-        <Link href="/" className="text-sm font-medium text-cyan-300">
-          Back to dashboard
-        </Link>
+    <main className="min-h-screen bg-slate-950 px-4 py-5 text-slate-100 sm:px-6 sm:py-8">
+      <section className="mx-auto w-full max-w-4xl">
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/" className="text-sm font-bold text-cyan-300">
+            Back to dashboard
+          </Link>
 
-        <header className="mt-6 rounded-3xl border border-slate-800 bg-slate-900 p-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
-            Digital Patient Whiteboard
+          <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">
+            Staff Capture
+          </span>
+        </div>
+
+        <header className="mt-5 rounded-3xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
+            Outreach Movement Board
           </p>
-          <h1 className="mt-3 text-3xl font-bold text-white">
-            Quick Capture Movement Card
+
+          <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
+            Add Movement Card
           </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Capture the minimum operational details while the call or outreach
-            contact is active. Full profile details can be completed later.
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+            Fast phone-first entry. Pick what this is, who it is, where they are,
+            who owns it, and what happens next.
           </p>
         </header>
 
         {message ? (
-          <div className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+          <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
             {message}
           </div>
         ) : null}
 
         <form
           action={createPatientCard}
-          className="mt-6 grid gap-6 rounded-3xl border border-slate-800 bg-slate-900 p-6"
+          className="mt-5 grid gap-5 rounded-3xl border border-slate-800 bg-slate-900 p-4 sm:p-6"
         >
           <section>
-            <h2 className="text-xl font-bold text-white">Quick Capture</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Use this section during live calls. Keep it fast and operational.
-            </p>
+            <h2 className="text-xl font-black text-white">
+              What are you adding?
+            </h2>
 
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Lead / Patient Display Name
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {captureTypes.map((type) => (
+                <label
+                  key={type.value}
+                  className="cursor-pointer rounded-2xl border border-slate-700 bg-slate-950 p-4 transition hover:border-cyan-300/70 hover:bg-cyan-300/10"
+                >
+                  <input
+                    type="radio"
+                    name="capture_type"
+                    value={type.value}
+                    defaultChecked={type.value === "potential_client"}
+                    className="peer sr-only"
+                  />
+
+                  <span className="block text-base font-black text-white peer-checked:text-cyan-200">
+                    {type.label}
+                  </span>
+
+                  <span className="mt-2 block text-xs leading-5 text-slate-400">
+                    {type.helper}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid gap-5">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Name / Display Name
+              <input
+                name="patient_display_name"
+                required
+                placeholder="Example: John S, J.S., or approved display name"
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Source / Facility
+              <select
+                name="source_or_facility"
+                defaultValue=""
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              >
+                <option value="">Select source or facility</option>
+                {sourceOptions.map((source) => (
+                  <option key={source} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Where are they now?
+              <select
+                name="current_location_setting"
+                defaultValue="unknown"
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              >
+                {locationOptions.map((location) => (
+                  <option key={location.value} value={location.value}>
+                    {location.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </section>
+
+          <section className="grid gap-5 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Assigned Owner
+              <select
+                name="assigned_owner"
+                defaultValue=""
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              >
+                <option value="">Select owner</option>
+                {ownerOptions.map((owner) => (
+                  <option key={owner} value={owner}>
+                    {owner}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Follow-Up Due
+              <input
+                name="next_follow_up_due_at"
+                type="datetime-local"
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              />
+            </label>
+          </section>
+
+          <section className="grid gap-5 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Next Action
+              <select
+                name="next_action"
+                defaultValue="Call back needed"
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              >
+                {nextActionOptions.map((action) => (
+                  <option key={action} value={action}>
+                    {action}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+              Priority
+              <select
+                name="priority"
+                defaultValue="medium"
+                className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </label>
+          </section>
+
+          <DictationTextarea
+            name="quick_note"
+            label="Quick Note"
+            rows={5}
+            placeholder="Example: Called referral source. Client is at Banyan. Possible discharge Friday. Drew needs to call back tomorrow."
+            helperText="Phone users can tap the keyboard microphone. Keep this operational and short."
+          />
+
+          <details className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+            <summary className="cursor-pointer text-base font-black text-cyan-200">
+              More details, if needed
+            </summary>
+
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+                Expected Admission Date
                 <input
-                  name="patient_display_name"
-                  required
-                  placeholder="Example: J.S. or approved display name"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  name="expected_date"
+                  type="date"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Current Stage
-                <select
-                  name="stage"
-                  defaultValue="New Inquiry / Lead"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  {stages.map((stage) => (
-                    <option key={stage} value={stage}>
-                      {stage}
-                    </option>
-                  ))}
-                </select>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+                Expected Admission Time
+                <input
+                  name="expected_time"
+                  type="time"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+                />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Lead Source
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+                Tentative Detox DC Date
+                <input
+                  name="tentative_detox_dc_date"
+                  type="date"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+                Target Program
                 <select
-                  name="lead_source"
+                  name="target_program"
                   defaultValue=""
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 >
-                  <option value="">Select source</option>
-                  <option value="google_ad">Google Ad</option>
-                  <option value="outreach">Outreach</option>
-                  <option value="family">Family</option>
-                  <option value="provider">Provider</option>
-                  <option value="hospital">Hospital</option>
-                  <option value="detox">Detox</option>
-                  <option value="self">Self</option>
-                  <option value="other">Other</option>
+                  <option value="">Not set</option>
+                  <option value="PHP">PHP</option>
+                  <option value="IOP">IOP</option>
+                  <option value="OP">OP</option>
+                  <option value="Housing">Housing</option>
+                  <option value="Detox referral only">Detox referral only</option>
                 </select>
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Current Location / Setting
-                <select
-                  name="current_location_setting"
-                  defaultValue="unknown"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="unknown">Unknown</option>
-                  <option value="home">Home</option>
-                  <option value="hospital">Hospital / Medical</option>
-                  <option value="detox">Detox</option>
-                  <option value="jail">Jail / Legal Custody</option>
-                  <option value="residential">Residential Treatment</option>
-                  <option value="outside_php_iop">Outside PHP / IOP</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
                 Detox Needed?
                 <select
                   name="detox_needed"
                   defaultValue="unknown"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 >
                   <option value="unknown">Unknown</option>
                   <option value="yes">Yes</option>
@@ -170,92 +332,39 @@ export default async function NewPatientPage({
                 </select>
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Next Action
-                <select
-                  name="next_action"
-                  defaultValue=""
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="">Select next action</option>
-                  {nextActionOptions.map((action) => (
-                    <option key={action} value={action}>
-                      {action}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-  Assigned Owner
-  <input
-    name="assigned_owner"
-    placeholder="Example: Derek, Admissions, Case Manager, Outreach"
-    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-  />
-</label>
-
-            </div>
-
-            <div className="mt-5 grid gap-5">
-              <DictationTextarea
-  name="quick_note"
-  label="Quick Note"
-  rows={4}
-  placeholder="Short operational note only. Example: First call completed. Client requested callback after work."
-  helperText="First-contact capture only. Phone users can tap the keyboard microphone. Desktop users can use Start Dictation if available."
-/>
-            </div>
-          </section>
-
-          <details className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
-            <summary className="cursor-pointer text-sm font-bold text-cyan-200">
-              Show advanced details
-            </summary>
-
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Referral Source Name
-                <input
-                  name="referral_source_name"
-                  placeholder="Specific person, facility, campaign, or source"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Target Program
-                <input
-                  name="target_program"
-                  placeholder="PHP, IOP, OP, housing, detox referral only"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
                 Detox Referred To
                 <input
                   name="detox_referred_to"
-                  placeholder="Detox facility we referred to"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  placeholder="Facility name"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
                 Current Detox
                 <input
                   name="current_detox"
-                  placeholder="Detox facility where person is currently located"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  placeholder="Facility name"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
+                Blocker
+                <input
+                  name="blocker"
+                  placeholder="Transport, insurance, documents, phone off, other"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
                 Expected From Detox?
                 <select
                   name="expected_from_detox"
                   defaultValue="unknown"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 >
                   <option value="unknown">Unknown</option>
                   <option value="yes">Yes</option>
@@ -264,12 +373,12 @@ export default async function NewPatientPage({
                 </select>
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
                 Expected To Admit After Detox?
                 <select
                   name="expected_to_admit_after_detox"
                   defaultValue="unknown"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  className="min-h-14 rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-base text-white outline-none focus:border-cyan-300"
                 >
                   <option value="unknown">Unknown</option>
                   <option value="yes">Yes</option>
@@ -278,68 +387,24 @@ export default async function NewPatientPage({
                 </select>
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Conversion Status
-                <select
-                  name="conversion_status"
-                  defaultValue="open"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="open">Open</option>
-                  <option value="likely">Likely</option>
-                  <option value="uncertain">Uncertain</option>
-                  <option value="lost">Lost</option>
-                  <option value="admitted">Admitted</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Priority
-                <select
-                  name="priority"
-                  defaultValue="medium"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Next Follow-Up Due
-                <input
-                  name="next_follow_up_due_at"
-                  type="datetime-local"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Blocker
-                <input
-                  name="blocker"
-                  placeholder="Insurance, transport, documents, approval, other"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
+              <input name="lead_source" type="hidden" value="outreach" />
             </div>
           </details>
 
           <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
-            Quick capture is for operational movement only. Clinical notes,
-            diagnoses, therapy content, trauma details, and unnecessary PHI stay
-            in the correct system of record.
+            Operational movement only. Clinical notes, diagnoses, therapy
+            content, trauma details, and unnecessary PHI stay in the correct
+            system of record.
           </div>
 
-          <button
-            type="submit"
-            className="rounded-xl bg-cyan-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-          >
-            Save Movement Card
-          </button>
+          <div className="sticky bottom-3 z-10 rounded-2xl border border-slate-800 bg-slate-950/95 p-3 shadow-2xl shadow-black/50 backdrop-blur">
+            <button
+              type="submit"
+              className="min-h-14 w-full rounded-xl bg-cyan-300 px-4 py-4 text-base font-black text-slate-950 transition hover:bg-cyan-200"
+            >
+              Save Movement Card
+            </button>
+          </div>
         </form>
       </section>
     </main>

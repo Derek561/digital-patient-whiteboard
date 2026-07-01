@@ -3,6 +3,16 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function cleanText(value: FormDataEntryValue | null) {
+  const text = String(value || "").trim();
+  return text.length > 0 ? text : null;
+}
+
+function cleanDateTime(value: FormDataEntryValue | null) {
+  const text = String(value || "").trim();
+  return text.length > 0 ? text : null;
+}
+
 export async function createPatientCard(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
@@ -40,49 +50,103 @@ export async function createPatientCard(formData: FormData) {
     );
   }
 
-  const patientDisplayName = String(
-    formData.get("patient_display_name") || "",
-  ).trim();
+  const patientDisplayName = cleanText(formData.get("patient_display_name"));
 
   if (!patientDisplayName) {
-    redirect("/patients/new?message=Patient display name is required");
+    redirect("/patients/new?message=Name or display name is required");
   }
 
-  const stage = String(formData.get("stage") || "New Inquiry / Lead");
-  const nextAction = String(formData.get("next_action") || "").trim() || null;
-  const blocker = String(formData.get("blocker") || "").trim() || null;
-  const quickNote = String(formData.get("quick_note") || "").trim() || null;
+  const captureType =
+    String(formData.get("capture_type") || "").trim() || "potential_client";
+
+  const mappedStage =
+    captureType === "referral_source_admission"
+      ? "Scheduled Admission"
+      : captureType === "relapse_detox"
+        ? "Currently in Detox"
+        : "New Inquiry / Lead";
+
+  const sourceOrFacility = cleanText(formData.get("source_or_facility"));
+  const currentLocationSetting =
+    String(formData.get("current_location_setting") || "").trim() || "unknown";
+
+  const assignedOwner = cleanText(formData.get("assigned_owner"));
+  const nextAction = cleanText(formData.get("next_action"));
+  const blocker = cleanText(formData.get("blocker"));
+  const quickNote = cleanText(formData.get("quick_note"));
+
+  const nextFollowUpDueAt = cleanDateTime(
+    formData.get("next_follow_up_due_at"),
+  );
+  const expectedDate = cleanDateTime(formData.get("expected_date"));
+  const expectedTime = cleanText(formData.get("expected_time"));
+  const tentativeDetoxDcDate = cleanDateTime(
+    formData.get("tentative_detox_dc_date"),
+  );
+
+  const detoxName =
+    captureType === "relapse_detox"
+      ? sourceOrFacility
+      : cleanText(formData.get("current_detox"));
+
+  const referralSourceName =
+    captureType === "referral_source_admission" ? sourceOrFacility : null;
+
+  const detoxNeeded =
+    captureType === "relapse_detox"
+      ? "yes"
+      : String(formData.get("detox_needed") || "unknown");
+
+  const expectedFromDetox =
+    captureType === "relapse_detox"
+      ? "yes"
+      : String(formData.get("expected_from_detox") || "unknown");
+
+  const expectedToAdmitAfterDetox =
+    captureType === "relapse_detox"
+      ? "maybe"
+      : String(formData.get("expected_to_admit_after_detox") || "unknown");
+
+  const conversionStatus =
+    captureType === "referral_source_admission" ? "likely" : "open";
+
+  const targetProgram = cleanText(formData.get("target_program"));
+
   const payload = {
     patient_display_name: patientDisplayName,
+    capture_type: captureType,
 
-    lead_source: String(formData.get("lead_source") || "").trim() || null,
-    referral_source_name:
-      String(formData.get("referral_source_name") || "").trim() || null,
-    current_location_setting:
-      String(formData.get("current_location_setting") || "").trim() || null,
-    detox_needed: String(formData.get("detox_needed") || "unknown"),
+    lead_source:
+      captureType === "potential_client"
+        ? String(formData.get("lead_source") || "outreach")
+        : captureType === "referral_source_admission"
+          ? "provider"
+          : "detox",
+
+    referral_source_name: referralSourceName,
+    referral_source: referralSourceName,
+    current_location_setting: currentLocationSetting,
+    location_need: currentLocationSetting,
+
+    detox_needed: detoxNeeded,
     detox_referred_to:
-      String(formData.get("detox_referred_to") || "").trim() || null,
-    current_detox: String(formData.get("current_detox") || "").trim() || null,
-    expected_from_detox: String(
-      formData.get("expected_from_detox") || "unknown",
-    ),
-    expected_to_admit_after_detox: String(
-      formData.get("expected_to_admit_after_detox") || "unknown",
-    ),
-    target_program: String(formData.get("target_program") || "").trim() || null,
-    conversion_status: String(formData.get("conversion_status") || "open"),
-    next_follow_up_due_at:
-      String(formData.get("next_follow_up_due_at") || "") || null,
+      captureType === "relapse_detox"
+        ? detoxName
+        : cleanText(formData.get("detox_referred_to")),
+    current_detox: detoxName,
+    expected_from_detox: expectedFromDetox,
+    expected_to_admit_after_detox: expectedToAdmitAfterDetox,
 
-    stage,
-    level_of_care: String(formData.get("target_program") || "").trim() || null,
-    referral_source:
-      String(formData.get("referral_source_name") || "").trim() || null,
-    expected_date: String(formData.get("expected_date") || "") || null,
-    expected_time: String(formData.get("expected_time") || "") || null,
-    location_need:
-      String(formData.get("current_location_setting") || "").trim() || null,
+    target_program: targetProgram,
+    level_of_care: targetProgram,
+
+    conversion_status: conversionStatus,
+    stage: mappedStage,
+
+    expected_date:
+      captureType === "relapse_detox" ? tentativeDetoxDcDate : expectedDate,
+    expected_time: expectedTime,
+
     transportation_status: String(
       formData.get("transportation_status") || "pending",
     ),
@@ -92,15 +156,16 @@ export async function createPatientCard(formData: FormData) {
     clinical_clearance_status: String(
       formData.get("clinical_clearance_status") || "not_started",
     ),
+
     blocker,
-    assigned_owner:
-  String(formData.get("assigned_owner") || "").trim() || null,
+    assigned_owner: assignedOwner,
     next_action: nextAction,
-    next_action_due_at:
-      String(formData.get("next_action_due_at") || "") || null,
+    next_follow_up_due_at: nextFollowUpDueAt,
+    next_action_due_at: nextFollowUpDueAt,
+
     priority: String(formData.get("priority") || "medium"),
-    operational_notes:
-      String(formData.get("operational_notes") || "").trim() || null,
+    operational_notes: quickNote,
+
     created_by: user.id,
   };
 
@@ -113,15 +178,26 @@ export async function createPatientCard(formData: FormData) {
   if (error || !createdCard) {
     redirect(
       `/patients/new?message=${encodeURIComponent(
-        error?.message || "Patient card creation failed",
+        error?.message || "Movement card creation failed",
       )}`,
     );
   }
 
-  const createNote = [
-    `Card created in ${stage}`,
+  const captureLabel =
+    captureType === "referral_source_admission"
+      ? "Referral Source Admission"
+      : captureType === "relapse_detox"
+        ? "Relapse / Detox"
+        : "Potential Client";
+
+  const updateNote = [
+    `Card created as ${captureLabel}`,
+    `Stage: ${mappedStage}`,
+    sourceOrFacility ? `Source / facility: ${sourceOrFacility}` : null,
+    currentLocationSetting ? `Location: ${currentLocationSetting}` : null,
+    assignedOwner ? `Owner: ${assignedOwner}` : null,
     nextAction ? `Next action: ${nextAction}` : null,
-    blocker ? `Blocker: ${blocker}` : null,
+    quickNote ? `Note: ${quickNote}` : null,
   ]
     .filter(Boolean)
     .join(" | ");
@@ -130,15 +206,12 @@ export async function createPatientCard(formData: FormData) {
     .from("patient_activity_logs")
     .insert({
       patient_card_id: createdCard.id,
-      stage_at_time: stage,
+      stage_at_time: mappedStage,
       update_type: "created",
-      update_note: `Card created in ${stage}${
-  nextAction ? ` | Next action: ${nextAction}` : ""
-}${quickNote ? ` | Note: ${quickNote}` : ""}`,
+      update_note: updateNote,
       next_action: nextAction,
       operational_notes: quickNote,
-      next_action_due_at:
-        String(formData.get("next_action_due_at") || "") || null,
+      next_action_due_at: nextFollowUpDueAt,
       confidentiality_check: "Minimum necessary only",
       created_by: user.id,
     });
