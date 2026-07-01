@@ -29,6 +29,37 @@ export async function signIn(formData: FormData) {
     redirect(`/login?message=${encodeURIComponent(error.message)}`);
   }
 
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect(
+      `/login?message=${encodeURIComponent(
+        "Login succeeded, but user session could not be confirmed.",
+      )}`,
+    );
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    redirect(
+      `/login?message=${encodeURIComponent(
+        `Login succeeded, but profile lookup failed: ${profileError.message}`,
+      )}`,
+    );
+  }
+
+  if (profile?.role === "outreach") {
+    redirect("/patients/new");
+  }
+
   redirect("/");
 }
 
