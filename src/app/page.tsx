@@ -130,30 +130,16 @@ function formatShortDate(dateValue: string | null) {
 export default async function Home({ searchParams }: HomePageProps) {
   const supabase = await createSupabaseServerClient();
 
-const {
-  data: { user },
-  error: userError,
-} = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-if (userError || !user) {
-  redirect("/login");
-}
+  if (userError || !user) {
+    redirect("/login");
+  }
 
-const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .single();
-
-if (profileError) {
-  redirect("/login?message=Profile lookup failed");
-}
-
-if (profile?.role === "outreach") {
-  redirect("/patients/new");
-}
-
-const signedInEmail = user.email || "Signed in";
+  const signedInEmail = user.email || "Signed in";
   const renderedAt = new Date().toLocaleString();
 
   const params = (await searchParams) || {};
