@@ -14,17 +14,17 @@ const captureTypes = [
   {
     value: "potential_client",
     label: "Potential Client",
-    helper: "Someone we are working on now.",
+    helper: "New lead we are working.",
   },
   {
     value: "referral_source_admission",
     label: "Referral Source Admission",
-    helper: "Someone scheduled or likely to come from a referral source.",
+    helper: "Coming from a referral source.",
   },
   {
     value: "relapse_detox",
     label: "Relapse / Detox",
-    helper: "Current client or prospect placed in detox.",
+    helper: "Client or lead in detox.",
   },
 ];
 
@@ -111,7 +111,7 @@ export default async function NewPatientPage({
           </p>
 
           <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
-            Add Movement Card
+            Add Lead
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
@@ -163,7 +163,7 @@ export default async function NewPatientPage({
 
           <section className="grid gap-5">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Name / Display Name
+              Who is it?
               <input
                 name="patient_display_name"
                 required
@@ -173,7 +173,7 @@ export default async function NewPatientPage({
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Source / Facility
+              Source
               <select
                 name="source_or_facility"
                 defaultValue=""
@@ -188,8 +188,17 @@ export default async function NewPatientPage({
               </select>
             </label>
 
+              <label className="flex flex-col gap-2 text-sm text-slate-300">
+                Other source name
+                <input
+                  name="other_source_name"
+                  placeholder="Type source if not listed"
+                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                />
+              </label>
+
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Where are they now?
+              Where now?
               <select
                 name="current_location_setting"
                 defaultValue="unknown"
@@ -206,7 +215,7 @@ export default async function NewPatientPage({
 
           <section className="grid gap-5 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Assigned Owner
+              Owner
               <select
                 name="assigned_owner"
                 defaultValue=""
@@ -222,7 +231,7 @@ export default async function NewPatientPage({
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Follow-Up Due
+              Follow up
               <input
                 name="next_follow_up_due_at"
                 type="datetime-local"
@@ -233,7 +242,7 @@ export default async function NewPatientPage({
 
           <section className="grid gap-5 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
-              Next Action
+              Next step
               <select
                 name="next_action"
                 defaultValue="Call back needed"
@@ -264,10 +273,10 @@ export default async function NewPatientPage({
 
           <DictationTextarea
             name="quick_note"
-            label="Quick Note"
+            label="Note"
             rows={5}
-            placeholder="Example: Called referral source. Client is at Banyan. Possible discharge Friday. Drew needs to call back tomorrow."
-            helperText="Phone users can tap the keyboard microphone. Keep this operational and short."
+            placeholder="Example: At Banyan. Possible discharge Friday. Drew calls back tomorrow."
+            helperText="Phone tip: use the keyboard mic if needed."
           />
 
           <details className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
@@ -402,7 +411,7 @@ export default async function NewPatientPage({
               type="submit"
               className="min-h-14 w-full rounded-xl bg-cyan-300 px-4 py-4 text-base font-black text-slate-950 transition hover:bg-cyan-200"
             >
-              Save Movement Card
+              Save Lead
             </button>
           </div>
         </form>

@@ -67,6 +67,11 @@ export async function createPatientCard(formData: FormData) {
         : "New Inquiry / Lead";
 
   const sourceOrFacility = cleanText(formData.get("source_or_facility"));
+  const otherSourceName = cleanText(formData.get("other_source_name"));
+  const finalSourceName =
+    sourceOrFacility === "Other"
+      ? otherSourceName || "Other"
+      : sourceOrFacility;
   const currentLocationSetting =
     String(formData.get("current_location_setting") || "").trim() || "unknown";
 
@@ -90,7 +95,7 @@ export async function createPatientCard(formData: FormData) {
       : cleanText(formData.get("current_detox"));
 
   const referralSourceName =
-    captureType === "referral_source_admission" ? sourceOrFacility : null;
+    captureType === "referral_source_admission" ? finalSourceName : null;
 
   const detoxNeeded =
     captureType === "relapse_detox"
