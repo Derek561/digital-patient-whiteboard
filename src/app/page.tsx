@@ -306,6 +306,20 @@ export default async function Home({ searchParams }: HomePageProps) {
       badgeClass: "border-slate-600 bg-slate-800 text-slate-200",
     },
   ];
+
+  const compactWorkQueueSections = workQueueSections.map((section) => ({
+    ...section,
+    visibleCards: section.cards.slice(0, 3),
+    hiddenCards: section.cards.slice(3),
+  }));
+
+  const hiddenWorkQueueCards = compactWorkQueueSections.flatMap((section) =>
+    section.hiddenCards.map((card) => ({
+      ...card,
+      bucketTitle: section.title,
+    })),
+  );
+
   const cardsByStage = stages.map((stage) => ({
     stage,
     cards: patientCards.filter((card) => card.stage === stage),
@@ -404,7 +418,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           </div>
 
           <div className="grid gap-4 xl:grid-cols-4">
-            {workQueueSections.map((section) => (
+            {compactWorkQueueSections.map((section) => (
               <div
                 key={section.title}
                 className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4"
@@ -421,12 +435,12 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  {section.cards.length === 0 ? (
+                  {section.visibleCards.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
                       {section.emptyText}
                     </div>
                   ) : (
-                    section.cards.slice(0, 5).map((card) => (
+                    section.visibleCards.map((card) => (
                       <Link
                         key={`${section.title}-${card.id}`}
                         href={`/patients/${card.id}`}
@@ -476,6 +490,53 @@ export default async function Home({ searchParams }: HomePageProps) {
               </div>
             ))}
           </div>
+          {hiddenWorkQueueCards.length > 0 ? (
+            <details className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <summary className="cursor-pointer text-sm font-black text-cyan-200">
+                More Follow-Ups
+              </summary>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {hiddenWorkQueueCards.map((card) => (
+                  <Link
+                    key={card.id}
+                    href={`/patients/${card.id}`}
+                    className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm transition hover:border-cyan-300"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-bold text-white">
+                          {card.patient_display_name}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">
+                          {card.bucketTitle} · {card.stage}
+                        </p>
+                      </div>
+
+                      <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-bold text-cyan-200">
+                        {card.priority || "normal"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid gap-1 text-xs text-slate-300">
+                      <p>
+                        <span className="text-slate-500">Owner:</span>{" "}
+                        {card.assigned_owner || "Unassigned"}
+                      </p>
+                      <p>
+                        <span className="text-slate-500">Due:</span>{" "}
+                        {formatShortDate(card.next_follow_up_due_at)}
+                      </p>
+                      <p>
+                        <span className="text-slate-500">Next:</span>{" "}
+                        {card.next_action || "No next step"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </details>
+          ) : null}
         </section>
 
         <section className="grid gap-4 md:grid-cols-4">
