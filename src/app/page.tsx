@@ -234,57 +234,51 @@ export default async function Home({ searchParams }: HomePageProps) {
   const patientCards = (patientCardsData || []) as PatientCard[];
   const recentActivity = (recentActivityData || []) as ActivityLog[];
   const overdueCards = patientCards.filter((card) =>
-  isOverdue(card.next_follow_up_due_at),
-);
+    isOverdue(card.next_follow_up_due_at),
+  );
 
-const dueTodayCards = patientCards.filter(
-  (card) =>
-    isDueToday(card.next_follow_up_due_at) &&
-    !isOverdue(card.next_follow_up_due_at),
-);
+  const dueTodayCards = patientCards.filter(
+    (card) =>
+      isDueToday(card.next_follow_up_due_at) &&
+      !isOverdue(card.next_follow_up_due_at),
+  );
 
-const upcomingCards = patientCards
-  .filter((card) => isUpcoming(card.next_follow_up_due_at))
-  .slice(0, 6);
+  const upcomingCards = patientCards
+    .filter((card) => isUpcoming(card.next_follow_up_due_at))
+    .slice(0, 6);
 
-const unassignedCards = patientCards.filter(
-  (card) => !card.assigned_owner,
-);
+  const unassignedCards = patientCards.filter((card) => !card.assigned_owner);
 
-const workQueueSections = [
-  {
-    title: "Overdue",
-    count: overdueCards.length,
-    cards: overdueCards,
-    emptyText: "No overdue follow-ups.",
-    badgeClass:
-      "border-rose-400/40 bg-rose-400/10 text-rose-200",
-  },
-  {
-    title: "Today",
-    count: dueTodayCards.length,
-    cards: dueTodayCards,
-    emptyText: "Nothing else due today.",
-    badgeClass:
-      "border-amber-300/40 bg-amber-300/10 text-amber-100",
-  },
-  {
-    title: "Upcoming",
-    count: upcomingCards.length,
-    cards: upcomingCards,
-    emptyText: "No upcoming follow-ups set.",
-    badgeClass:
-      "border-cyan-300/40 bg-cyan-300/10 text-cyan-100",
-  },
-  {
-    title: "Unassigned",
-    count: unassignedCards.length,
-    cards: unassignedCards,
-    emptyText: "All active cards have an owner.",
-    badgeClass:
-      "border-slate-600 bg-slate-800 text-slate-200",
-  },
-];
+  const workQueueSections = [
+    {
+      title: "Overdue",
+      count: overdueCards.length,
+      cards: overdueCards,
+      emptyText: "No overdue follow-ups.",
+      badgeClass: "border-rose-400/40 bg-rose-400/10 text-rose-200",
+    },
+    {
+      title: "Today",
+      count: dueTodayCards.length,
+      cards: dueTodayCards,
+      emptyText: "Nothing else due today.",
+      badgeClass: "border-amber-300/40 bg-amber-300/10 text-amber-100",
+    },
+    {
+      title: "Upcoming",
+      count: upcomingCards.length,
+      cards: upcomingCards,
+      emptyText: "No upcoming follow-ups set.",
+      badgeClass: "border-cyan-300/40 bg-cyan-300/10 text-cyan-100",
+    },
+    {
+      title: "Unassigned",
+      count: unassignedCards.length,
+      cards: unassignedCards,
+      emptyText: "All active cards have an owner.",
+      badgeClass: "border-slate-600 bg-slate-800 text-slate-200",
+    },
+  ];
   const cardsByStage = stages.map((stage) => ({
     stage,
     cards: patientCards.filter((card) => card.stage === stage),
@@ -316,7 +310,7 @@ const workQueueSections = [
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
-                <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
+        <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
               Staff Session
@@ -348,13 +342,10 @@ const workQueueSections = [
                 Active Leads
               </p>
               <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
-                Outreach, Detox Pathway, Admission Movement, and Follow-Up
-                Visibility
+                Today’s Movement
               </h1>
               <p className="mt-4 max-w-4xl text-sm leading-6 text-slate-300">
-                A human-centered operational board for prospective patient
-                movement, lead origin, detox pathway tracking, blockers, next
-                actions, follow-up ownership, and admission readiness.
+                Who is coming in, who is in detox, and who needs follow-up.
               </p>
             </div>
 
@@ -370,93 +361,95 @@ const workQueueSections = [
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-  <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
-        Work Queue
-      </p>
-      <h2 className="mt-2 text-2xl font-black text-white">
-        Follow-Ups
-      </h2>
-      <p className="mt-2 text-xs leading-5 text-slate-400">
-        Fast accountability view for follow-ups, overdue items, upcoming work,
-        and unassigned outreach movement cards.
-      </p>
-    </div>
-  </div>
-
-  <div className="grid gap-4 xl:grid-cols-4">
-    {workQueueSections.map((section) => (
-      <div
-        key={section.title}
-        className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4"
-      >
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-white">{section.title}</h3>
-          <span
-            className={`rounded-full border px-2 py-1 text-xs font-semibold ${section.badgeClass}`}
-          >
-            {section.count}
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {section.cards.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
-              {section.emptyText}
+          <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.35em] text-cyan-300">
+                Work Queue
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                Follow-Ups
+              </h2>
+              <p className="mt-2 text-xs leading-5 text-slate-400">
+                Fast accountability view for follow-ups, overdue items, upcoming
+                work, and unassigned outreach movement cards.
+              </p>
             </div>
-          ) : (
-            section.cards.slice(0, 5).map((card) => (
-              <Link
-                key={`${section.title}-${card.id}`}
-                href={`/patients/${card.id}`}
-                className="rounded-xl border border-slate-800 bg-slate-900 p-3 transition hover:border-cyan-300/60 hover:bg-slate-800"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-white">
-                      {card.patient_display_name}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {card.stage}
-                    </p>
-                  </div>
+          </div>
 
-                  <span className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-semibold text-slate-300">
-                    {card.priority || "normal"}
+          <div className="grid gap-4 xl:grid-cols-4">
+            {workQueueSections.map((section) => (
+              <div
+                key={section.title}
+                className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4"
+              >
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-bold text-white">
+                    {section.title}
+                  </h3>
+                  <span
+                    className={`rounded-full border px-2 py-1 text-xs font-semibold ${section.badgeClass}`}
+                  >
+                    {section.count}
                   </span>
                 </div>
 
-                <div className="mt-3 space-y-1 text-xs">
-                  <p className="text-slate-400">
-                    Owner:{" "}
-                    <span className="text-slate-200">
-                      {card.assigned_owner || "Unassigned"}
-                    </span>
-                  </p>
+                <div className="flex flex-col gap-3">
+                  {section.cards.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-800 px-4 py-5 text-xs text-slate-500">
+                      {section.emptyText}
+                    </div>
+                  ) : (
+                    section.cards.slice(0, 5).map((card) => (
+                      <Link
+                        key={`${section.title}-${card.id}`}
+                        href={`/patients/${card.id}`}
+                        className="rounded-xl border border-slate-800 bg-slate-900 p-3 transition hover:border-cyan-300/60 hover:bg-slate-800"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-bold text-white">
+                              {card.patient_display_name}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {card.stage}
+                            </p>
+                          </div>
 
-                  <p className="text-slate-400">
-                    Due:{" "}
-                    <span className="text-slate-200">
-                      {formatDateTime(card.next_follow_up_due_at)}
-                    </span>
-                  </p>
+                          <span className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-semibold text-slate-300">
+                            {card.priority || "normal"}
+                          </span>
+                        </div>
 
-                  <p className="text-slate-400">
-                    Next:{" "}
-                    <span className="text-slate-200">
-                      {card.next_action || "Not set"}
-                    </span>
-                  </p>
+                        <div className="mt-3 space-y-1 text-xs">
+                          <p className="text-slate-400">
+                            Owner:{" "}
+                            <span className="text-slate-200">
+                              {card.assigned_owner || "Unassigned"}
+                            </span>
+                          </p>
+
+                          <p className="text-slate-400">
+                            Due:{" "}
+                            <span className="text-slate-200">
+                              {formatDateTime(card.next_follow_up_due_at)}
+                            </span>
+                          </p>
+
+                          <p className="text-slate-400">
+                            Next:{" "}
+                            <span className="text-slate-200">
+                              {card.next_action || "Not set"}
+                            </span>
+                          </p>
+                        </div>
+                      </Link>
+                    ))
+                  )}
                 </div>
-              </Link>
-            ))
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="grid gap-4 md:grid-cols-4">
           {statCards.map((card) => (
@@ -559,9 +552,7 @@ const workQueueSections = [
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <h2 className="text-2xl font-black text-white">
-                  Active Leads
-                </h2>
+                <h2 className="text-2xl font-black text-white">Active Leads</h2>
                 <p className="mt-2 text-xs leading-5 text-slate-400">
                   Showing {patientCards.length} active lead
                   {patientCards.length === 1 ? "" : "s"}. Cards move through
@@ -642,7 +633,8 @@ const workQueueSections = [
                             <p className="text-slate-400">
                               Clinical:{" "}
                               <span className="text-slate-200">
-                                {card.clinical_clearance_status || "not started"}
+                                {card.clinical_clearance_status ||
+                                  "not started"}
                               </span>
                             </p>
 

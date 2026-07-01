@@ -250,14 +250,14 @@ export default async function PatientDetailPage({
                 </label>
 
                 <label className="flex flex-col gap-2 text-sm text-slate-300">
-  Assigned Owner
-  <input
-    name="assigned_owner"
-    defaultValue={card.assigned_owner || ""}
-    placeholder="Example: Derek, Admissions, Case Manager, Outreach"
-    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-  />
-</label>
+                  Assigned Owner
+                  <input
+                    name="assigned_owner"
+                    defaultValue={card.assigned_owner || ""}
+                    placeholder="Example: Derek, Admissions, Case Manager, Outreach"
+                    className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+                  />
+                </label>
 
                 <label className="flex flex-col gap-2 text-sm text-slate-300">
                   Next Action
@@ -295,13 +295,13 @@ export default async function PatientDetailPage({
                   </select>
                 </label>
 
-               <DictationTextarea
-  name="quick_update_note"
-  label="Quick Update Note"
-  rows={3}
-  placeholder="Optional. Example: Left voicemail with detox admissions office. Follow up tomorrow morning."
-  helperText="Minimum necessary only. Phone users can tap the keyboard microphone. Desktop users can use Start Dictation if available."
-/>
+                <DictationTextarea
+                  name="quick_update_note"
+                  label="Quick Update Note"
+                  rows={3}
+                  placeholder="Optional. Example: Left voicemail with detox admissions office. Follow up tomorrow morning."
+                  helperText="Minimum necessary only. Phone users can tap the keyboard microphone. Desktop users can use Start Dictation if available."
+                />
               </div>
 
               <label className="flex flex-col gap-2 text-sm text-slate-300">

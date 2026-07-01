@@ -82,9 +82,7 @@ export default function ResetPasswordPage() {
           Digital Patient Whiteboard
         </p>
 
-        <h1 className="mt-4 text-3xl font-bold text-white">
-          Set new password
-        </h1>
+        <h1 className="mt-4 text-3xl font-bold text-white">Set new password</h1>
 
         <p className="mt-3 text-sm leading-6 text-slate-400">
           Enter a new password for your staff account.

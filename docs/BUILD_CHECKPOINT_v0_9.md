@@ -1,4 +1,5 @@
 # Digital Patient Whiteboard / Outreach Movement Board
+
 ## Build Checkpoint v0.9
 
 **Date:** 2026-06-30  
@@ -450,3 +451,4 @@ As of v0.9, the project has reached a usable local MVP.
 It supports quick outreach capture, dictation-friendly notes, assigned ownership, follow-up due visibility, overdue tracking, work queue accountability, activity logs, search/filter, and archive/close flow.
 
 The next phase should focus on staff usability and owner-based workflow before deployment.
+```

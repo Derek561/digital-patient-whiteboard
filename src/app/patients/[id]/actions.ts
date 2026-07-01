@@ -21,8 +21,8 @@ export async function updatePatientCard(
   const { data: existingCard, error: existingError } = await supabase
     .from("patient_cards")
     .select(
-  "stage, blocker, next_action, assigned_owner, current_location_setting, current_detox, detox_needed, expected_from_detox, expected_to_admit_after_detox",
-)
+      "stage, blocker, next_action, assigned_owner, current_location_setting, current_detox, detox_needed, expected_from_detox, expected_to_admit_after_detox",
+    )
     .eq("id", patientCardId)
     .single();
 
@@ -38,7 +38,7 @@ export async function updatePatientCard(
   const blocker = String(formData.get("blocker") || "").trim() || null;
   const nextAction = String(formData.get("next_action") || "").trim() || null;
   const assignedOwner =
-  String(formData.get("assigned_owner") || "").trim() || null;
+    String(formData.get("assigned_owner") || "").trim() || null;
   const quickUpdateNote =
     String(formData.get("quick_update_note") || "").trim() || null;
   const currentLocationSetting =
@@ -138,14 +138,14 @@ export async function updatePatientCard(
       }`,
     );
   }
-  
+
   if (existingCard.assigned_owner !== assignedOwner) {
-  changes.push(
-    `Owner: ${existingCard.assigned_owner || "none"} → ${
-      assignedOwner || "none"
-    }`,
-  );
-}
+    changes.push(
+      `Owner: ${existingCard.assigned_owner || "none"} → ${
+        assignedOwner || "none"
+      }`,
+    );
+  }
 
   const updateNote =
     changes.length > 0

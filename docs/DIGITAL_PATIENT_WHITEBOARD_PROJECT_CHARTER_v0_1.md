@@ -60,12 +60,12 @@ It is a visibility layer for operational movement and accountability.
 
 The purpose of the Digital Patient Whiteboard is to create one shared operational view showing:
 
-* Who is expected to come in
-* Where the person is in the admissions or movement process
-* What is blocking progress
-* Who owns the next step
-* When the next action is due
-* Whether the person admitted, did not admit, transitioned, discharged, or requires aftercare follow-up
+- Who is expected to come in
+- Where the person is in the admissions or movement process
+- What is blocking progress
+- Who owns the next step
+- When the next action is due
+- Whether the person admitted, did not admit, transitioned, discharged, or requires aftercare follow-up
 
 The system is designed to reduce scattered communication, unclear ownership, missed follow-ups, and operational confusion during patient movement.
 
@@ -75,13 +75,13 @@ Patient movement currently touches multiple areas, including outreach, admission
 
 Without a shared operational board, teams may rely on text messages, verbal updates, spreadsheets, CRM notes, Kipu documentation, or memory. This creates risk for:
 
-* Missed admissions
-* Unclear ownership
-* Duplicate follow-up
-* Poor visibility into blockers
-* Confusion between outreach, admissions, housing, and clinical responsibilities
-* Lost context after shift changes
-* Inconsistent aftercare or transition follow-up
+- Missed admissions
+- Unclear ownership
+- Duplicate follow-up
+- Poor visibility into blockers
+- Confusion between outreach, admissions, housing, and clinical responsibilities
+- Lost context after shift changes
+- Inconsistent aftercare or transition follow-up
 
 The Digital Patient Whiteboard is intended to solve the visibility and accountability gap without becoming a second clinical chart or CRM.
 
@@ -89,28 +89,28 @@ The Digital Patient Whiteboard is intended to solve the visibility and accountab
 
 The Digital Patient Whiteboard is:
 
-* An operational movement board
-* A shared visibility layer
-* A next-action ownership tool
-* A blocker tracking tool
-* A status board for admissions and transitions
-* A limited aftercare follow-up visibility tool
-* A role-based staff interface
-* A future voice-update-friendly workflow
+- An operational movement board
+- A shared visibility layer
+- A next-action ownership tool
+- A blocker tracking tool
+- A status board for admissions and transitions
+- A limited aftercare follow-up visibility tool
+- A role-based staff interface
+- A future voice-update-friendly workflow
 
 ## What This Tool Is Not
 
 The Digital Patient Whiteboard is not:
 
-* A CRM replacement
-* A Kipu replacement
-* A clinical documentation system
-* A housing census replacement
-* A billing platform
-* A therapy note system
-* A medical record
-* A marketing pipeline system
-* A payroll or staffing system
+- A CRM replacement
+- A Kipu replacement
+- A clinical documentation system
+- A housing census replacement
+- A billing platform
+- A therapy note system
+- A medical record
+- A marketing pipeline system
+- A payroll or staffing system
 
 ## Initial Build Principle
 
@@ -231,16 +231,16 @@ Initial role model:
 
 The dashboard should show:
 
-* Expected arrivals today
-* Expected arrivals tomorrow
-* High-priority blockers
-* Overdue next actions
-* Pending clinical review
-* Pending verification
-* Travel / ETA confirmed
-* Discharge / transition pending
-* Aftercare follow-up due
-* Recently updated cards
+- Expected arrivals today
+- Expected arrivals tomorrow
+- High-priority blockers
+- Overdue next actions
+- Pending clinical review
+- Pending verification
+- Travel / ETA confirmed
+- Discharge / transition pending
+- Aftercare follow-up due
+- Recently updated cards
 
 ### 6. Mobile-Friendly Staff Interface
 
@@ -248,15 +248,15 @@ The application must be usable from a phone.
 
 The outreach/admissions experience should prioritize large, simple actions:
 
-* Add New Prospect
-* Update Status
-* Add Contact Note
-* Mark Blocker
-* Set Next Action
-* Confirm ETA
-* Mark Did Not Admit
-* Move to Aftercare Follow-Up
-* Close / No Further Action
+- Add New Prospect
+- Update Status
+- Add Contact Note
+- Mark Blocker
+- Set Next Action
+- Confirm ETA
+- Mark Did Not Admit
+- Move to Aftercare Follow-Up
+- Close / No Further Action
 
 The interface should avoid spreadsheet-style data entry.
 
@@ -268,10 +268,10 @@ Voice entry is a desired feature, but it should not be part of the first core bu
 
 Use native device dictation first:
 
-* iPhone dictation
-* Android voice typing
-* Windows voice typing
-* Browser-based dictation where available
+- iPhone dictation
+- Android voice typing
+- Windows voice typing
+- Browser-based dictation where available
 
 ### Future Voice Feature
 
@@ -291,44 +291,44 @@ Clean operational note:
 
 ### Voice Guardrails
 
-* Staff must review before saving.
-* No automatic clinical conclusions.
-* No diagnosis generation.
-* No treatment narrative.
-* No silent AI entry into the record.
-* The saved note must remain operational and minimum necessary.
+- Staff must review before saving.
+- No automatic clinical conclusions.
+- No diagnosis generation.
+- No treatment narrative.
+- No silent AI entry into the record.
+- The saved note must remain operational and minimum necessary.
 
 ## PHI and Documentation Guardrails
 
 Allowed:
 
-* Initials or approved display name
-* Expected admission or transition date
-* Operational owner
-* Movement stage
-* Referral source
-* Location need
-* Transportation status
-* Verification status
-* Clinical clearance status only
-* Blocker
-* Next action
-* Aftercare appointment status
-* Resource handoff status
+- Initials or approved display name
+- Expected admission or transition date
+- Operational owner
+- Movement stage
+- Referral source
+- Location need
+- Transportation status
+- Verification status
+- Clinical clearance status only
+- Blocker
+- Next action
+- Aftercare appointment status
+- Resource handoff status
 
 Not allowed:
 
-* Full clinical history
-* Therapy notes
-* Trauma details
-* Diagnoses unless specifically approved by compliance
-* Medication narratives
-* Psychotherapy content
-* Detailed medical reasoning
-* Unnecessary benefit details
-* Full CRM history
-* Housing financial details
-* Uncontrolled screenshots or text chains as source of truth
+- Full clinical history
+- Therapy notes
+- Trauma details
+- Diagnoses unless specifically approved by compliance
+- Medication narratives
+- Psychotherapy content
+- Detailed medical reasoning
+- Unnecessary benefit details
+- Full CRM history
+- Housing financial details
+- Uncontrolled screenshots or text chains as source of truth
 
 ## System of Record Boundaries
 
@@ -346,18 +346,18 @@ Not allowed:
 
 ### Frontend
 
-* Next.js
-* TypeScript
-* Tailwind CSS
-* Mobile-first card interface
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Mobile-first card interface
 
 ### Backend
 
-* Supabase
-* PostgreSQL
-* Supabase Auth
-* Supabase Row Level Security
-* Supabase Storage only if approved for limited attachments later
+- Supabase
+- PostgreSQL
+- Supabase Auth
+- Supabase Row Level Security
+- Supabase Storage only if approved for limited attachments later
 
 ### Initial Data Tables
 
@@ -392,89 +392,89 @@ Suggested route structure:
 
 ### Milestone 1: Project Scaffold
 
-* Create Next.js app
-* Add Tailwind
-* Add Supabase client
-* Add environment variables
-* Add protected layout
-* Add basic navigation
+- Create Next.js app
+- Add Tailwind
+- Add Supabase client
+- Add environment variables
+- Add protected layout
+- Add basic navigation
 
 ### Milestone 2: Supabase Schema
 
-* Create profiles table
-* Create patient_cards table
-* Create patient_activity_logs table
-* Create patient_stage_history table
-* Create next_actions table
-* Create dropdown_options table
-* Create audit_events table
-* Enable Row Level Security
+- Create profiles table
+- Create patient_cards table
+- Create patient_activity_logs table
+- Create patient_stage_history table
+- Create next_actions table
+- Create dropdown_options table
+- Create audit_events table
+- Enable Row Level Security
 
 ### Milestone 3: Basic Board UI
 
-* Dashboard cards
-* Stage columns
-* Patient movement cards
-* Priority badges
-* Blocker indicators
-* Next-action due indicators
+- Dashboard cards
+- Stage columns
+- Patient movement cards
+- Priority badges
+- Blocker indicators
+- Next-action due indicators
 
 ### Milestone 4: Add / Edit Patient Card
 
-* Add new patient/prospect
-* Edit stage
-* Update owner
-* Update blocker
-* Update next action
-* Update ETA
-* Update priority
+- Add new patient/prospect
+- Edit stage
+- Update owner
+- Update blocker
+- Update next action
+- Update ETA
+- Update priority
 
 ### Milestone 5: Activity Log
 
-* Add log note
-* Show history
-* Preserve previous updates
-* Track staff and timestamp
+- Add log note
+- Show history
+- Preserve previous updates
+- Track staff and timestamp
 
 ### Milestone 6: Role Access
 
-* Admin role
-* Outreach role
-* Admissions role
-* Clinical leadership role
-* Housing / operations role
-* Case management role
-* Executive read-only role
+- Admin role
+- Outreach role
+- Admissions role
+- Clinical leadership role
+- Housing / operations role
+- Case management role
+- Executive read-only role
 
 ### Milestone 7: Mobile Usability Pass
 
-* Large buttons
-* Drawer-based updates
-* Quick update form
-* Simple search
-* Today / Tomorrow / Overdue filters
+- Large buttons
+- Drawer-based updates
+- Quick update form
+- Simple search
+- Today / Tomorrow / Overdue filters
 
 ### Milestone 8: Pilot Review
 
-* Test with limited users
-* Review usability
-* Review PHI boundaries
-* Review role permissions
-* Decide whether to expand
+- Test with limited users
+- Review usability
+- Review PHI boundaries
+- Review role permissions
+- Decide whether to expand
 
 ## v0.1 Success Criteria
 
 The first version is successful if:
 
-* Staff can add or update a patient card in under 60 seconds.
-* Leadership can see expected movement without asking multiple people.
-* Every active card has an owner and next action.
-* Blockers are visible.
-* The activity log preserves history.
-* Users do not rely on spreadsheet data entry.
-* The tool does not duplicate Kipu, CRM, or housing census.
-* Role access prevents unnecessary visibility.
-* The workflow is easier than text chains and verbal updates.
+- Staff can add or update a patient card in under 60 seconds.
+- Leadership can see expected movement without asking multiple people.
+- Every active card has an owner and next action.
+- Blockers are visible.
+- The activity log preserves history.
+- Users do not rely on spreadsheet data entry.
+- The tool does not duplicate Kipu, CRM, or housing census.
+- Role access prevents unnecessary visibility.
+- The workflow is easier than text chains and verbal updates.
 
 ## Build Philosophy
 

@@ -20,9 +20,7 @@ export default async function ForgotPasswordPage({
           Digital Patient Whiteboard
         </p>
 
-        <h1 className="mt-4 text-3xl font-bold text-white">
-          Reset password
-        </h1>
+        <h1 className="mt-4 text-3xl font-bold text-white">Reset password</h1>
 
         <p className="mt-3 text-sm leading-6 text-slate-400">
           Enter your approved staff email. If the account exists, a password

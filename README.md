@@ -573,3 +573,4 @@ What closed out
 The goal is not to create another documentation burden.
 
 The goal is to create a fast, clear, accountable movement layer so opportunities, referrals, detox handoffs, and follow-ups do not disappear into the fog.
+```

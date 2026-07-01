@@ -8,7 +8,9 @@ if (!supabaseUrl) {
 }
 
 if (!supabaseAnonKey) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable.");
+  throw new Error(
+    "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable.",
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

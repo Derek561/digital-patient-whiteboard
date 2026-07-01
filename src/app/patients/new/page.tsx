@@ -115,8 +115,8 @@ export default async function NewPatientPage({
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-            Fast phone-first entry. Pick what this is, who it is, where they are,
-            who owns it, and what happens next.
+            Fast phone-first entry. Pick what this is, who it is, where they
+            are, who owns it, and what happens next.
           </p>
         </header>
 
@@ -131,9 +131,7 @@ export default async function NewPatientPage({
           className="mt-5 grid gap-5 rounded-3xl border border-slate-800 bg-slate-900 p-4 sm:p-6"
         >
           <section>
-            <h2 className="text-xl font-black text-white">
-              Pick one
-            </h2>
+            <h2 className="text-xl font-black text-white">Pick one</h2>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {captureTypes.map((type) => (
@@ -188,14 +186,14 @@ export default async function NewPatientPage({
               </select>
             </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-300">
-                Other source
-                <input
-                  name="other_source_name"
-                  placeholder="Type source name"
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
-                />
-              </label>
+            <label className="flex flex-col gap-2 text-sm text-slate-300">
+              Other source
+              <input
+                name="other_source_name"
+                placeholder="Type source name"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300"
+              />
+            </label>
 
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-300">
               Where now
@@ -324,7 +322,9 @@ export default async function NewPatientPage({
                   <option value="IOP">IOP</option>
                   <option value="OP">OP</option>
                   <option value="Housing">Housing</option>
-                  <option value="Detox referral only">Detox referral only</option>
+                  <option value="Detox referral only">
+                    Detox referral only
+                  </option>
                 </select>
               </label>
 
