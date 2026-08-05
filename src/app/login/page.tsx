@@ -62,7 +62,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         ) : null}
 
         <div className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
-          Access is role-based. This system is separate from Kipu, CRM, and
+          This system is separate from Kipu, CRM, and
           Oceanside Housing census.
         </div>
       </section>
