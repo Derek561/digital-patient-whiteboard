@@ -45,3 +45,4 @@ next-env.d.ts
 
 # Keep safe environment templates in repo
 !.env.local.example
+docs/Derek_Notes/
