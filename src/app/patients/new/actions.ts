@@ -89,10 +89,12 @@ export async function createPatientCard(formData: FormData) {
     formData.get("tentative_detox_dc_date"),
   );
 
+  const enteredCurrentDetox = cleanText(formData.get("current_detox"));
+
   const detoxName =
-    captureType === "relapse_detox"
-      ? sourceOrFacility
-      : cleanText(formData.get("current_detox"));
+    captureType === "relapse_detox" || currentLocationSetting === "detox"
+      ? enteredCurrentDetox || finalSourceName
+      : enteredCurrentDetox;
 
   const referralSourceName =
     captureType === "referral_source_admission" ? finalSourceName : null;
