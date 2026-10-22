@@ -57,6 +57,17 @@ Milestones describe progress, not impermeable gates. A later test can reveal a f
 | UI layout and components | **REUSE SELECTIVELY** | Mobile workflow, auth, accessibility |
 | Secrets, storage, RLS, deployment | **AUDIT BEFORE CHANGE** | Access, service keys, vendor/service suitability |
 
+## October 22 implementation checkpoint (code candidate, not released)
+
+- **Code rollback:** `archive/whiteboard-before-alumni-rebuild-20261022`, baseline commit `63614099bdcf710809f6f7ad87701992d9cf9f40`.
+- **Development branch:** `feature/spr-alumni-staff-demo-v0-1`. **Draft PR:** https://github.com/Derek561/digital-patient-whiteboard/pull/3
+- **Preview build:** https://digital-patient-whiteboard-5f2o9pqny-derek561s-projects.vercel.app/alumni-demo (Vercel READY at `c35c4997b6e15a3e1a87cad6169c047883dbb56c`). This proves compilation, not signed-in/mobile acceptance.
+- **First slice coded:** existing staff authentication plus active-profile gate; 3 fictional alumni; simulated interaction outcomes; short notes; next follow-up date; interaction history and work queue; revoked contact prevents demo recording. No real calls, messages or Supabase writes. Local component state resets on refresh.
+- **Inventory finding:** 11 FKs, 3 update triggers, 1 public function, zero public views/Edge Functions/migrations/storage objects. Vercel project `prj_EEiAc6ChtMNXJeLe9xhUsw9ZnAfl` connected. Existing policies are too broad for alumni.
+- **Recovery:** source rollback established. SPR Supabase organization is Pro with daily-backup capability, but an actual restorable backup of this database has not been verified. **No destructive schema changes** until the database recovery path is verified.
+- **Current task truth:** Issue #1 inventory mapping done / DB recovery verification open; Issue #2 candidate coded and built / staff, Android/iPhone and persistence/RLS acceptance open.
+- **Inventory detail on feature branch:** `docs/SPR_ALUMNI_INVENTORY_AND_RECOVERY_2026-10-22.md`. Companion Drive project blueprint now records the same checkpoint.
+
 ## Next action
 
 **Issue #1, in order:** finish dependency/policy/auth/deployment inventory, record secure code+database recoverability, then identify the exact first non-destructive implementation change. No new whole-program discovery phase.
