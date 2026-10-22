@@ -13,7 +13,7 @@ export default async function AlumniDemoPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect("/login?next=%2Falumni-demo");
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -23,7 +23,7 @@ export default async function AlumniDemoPage() {
     .maybeSingle();
 
   if (profileError || !profile || !profile.is_active) {
-    redirect("/login?message=Your%20staff%20account%20is%20not%20active.");
+    redirect("/login?next=%2Falumni-demo&message=Your%20staff%20account%20is%20not%20active.");
   }
 
   return (
