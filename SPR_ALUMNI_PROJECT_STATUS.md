@@ -70,6 +70,16 @@ Milestones describe progress, not impermeable gates. A later test can reveal a f
 - **Current task truth:** Issue #1 inventory mapping done / DB recovery verification open; Issue #2 candidate coded and built / staff, Android/iPhone and persistence/RLS acceptance open.
 - **Inventory detail on feature branch:** `docs/SPR_ALUMNI_INVENTORY_AND_RECOVERY_2026-10-22.md`. Companion Drive project blueprint now records the same checkpoint.
 
+## Workflow correction | 2026-10-22 desktop review
+
+**Current demo gap:** the demo currently jumps from selecting a fictional alumni record directly to logging an outcome. There is **no functional call, text, email composer, dialer launch, two-way thread, or delivery confirmation**. This must not be confused with a complete staff communications workflow.
+
+**Controlling workflow:** open alumni profile -> confirm consent and channel preferences -> **start/compose the actual or simulated communication** -> capture contact result/reply -> assign follow-up -> save audited history/work queue.
+
+**Next demo change:** add first-class Call/Text/Email action layer with **simulation-only** initiation and explicit state transition to outcome entry. Preserve revoked-contact block at initiation as well as recording. Real desktop/mobile telephony or two-way messaging integrations require a separate provider/consent/security design, and no automatic delivery/status claims until implemented.
+
+See [Issue #2](https://github.com/Derek561/digital-patient-whiteboard/issues/2) for the action-layer acceptance conditions. This corrects the existing approved staff slice and does not create a new milestone.
+
 ## Next action
 
 **Issue #1, in order:** finish dependency/policy/auth/deployment inventory, record secure code+database recoverability, then identify the exact first non-destructive implementation change. No new whole-program discovery phase.
