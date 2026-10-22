@@ -43,6 +43,7 @@ Milestones describe progress, not impermeable gates. A later test can reveal a f
 - GitHub repository: `Derek561/digital-patient-whiteboard`, main branch, **public** as checked 2026-10-22. Do **not** put PHI, contact sheets, credentials, confidential DB exports, or individual patient data in commits or issues. Review repository visibility before any sensitive implementation.
 - Source currently uses Next.js, React, TypeScript, Supabase, and an existing login foundation. Code may be rewritten.
 - Supabase `ojhovkhnhwlocshpnmts`: **7 public tables**, each with RLS enabled; **4** `auth.users` accounts. Counts at initial inventory: `profiles` (4), `patient_cards` (18), `patient_activity_logs` (32), `patient_stage_history` (0), `next_actions` (0), `dropdown_options` (60), `audit_events` (0). These counts and structures must be rechecked before destructive work. Existing data are *not* a confirmed demo dataset.
+- **Access-policy finding:** existing authenticated-role `patient_cards` and `next_actions` policies use broad `true` predicates for reading and/or writing. RLS is on, but per-liaison/administrator authorization is **not** proven and must be redesigned and negatively tested before alumni use. See Issue #1 evidence.
 - This baseline has **not** deleted, renamed or changed production DB objects, auth users, DNS, deployments, or former Whiteboard app code.
 
 ## Initial keep / replace / remove decisions (provisional until Issue #1 closes)
