@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import Link from "next/link";
 
 type Channel = "Call" | "Text" | "Email";
 type DemoPerson = {
@@ -34,6 +33,11 @@ const initialPeople: DemoPerson[] = [
 ];
 
 const channels: Channel[] = ["Call", "Text", "Email"];
+const outcomeByMethod: Record<Channel, string[]> = {
+  Call: ["We talked", "No answer", "Left a voicemail", "Requested a callback", "Asked for a resource"],
+  Text: ["Text sent", "Reply received", "No reply yet", "Requested a callback", "Asked for a resource"],
+  Email: ["Email sent", "Reply received", "No reply yet", "Requested a callback", "Asked for a resource"],
+};
 
 function formatDue(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
@@ -50,7 +54,7 @@ export default function AlumniStaffDemo({
   const [selectedId, setSelectedId] = useState(initialPeople[0].id);
   const [activities, setActivities] = useState<DemoActivity[]>([]);
   const [channel, setChannel] = useState<Channel>("Call");
-  const [outcome, setOutcome] = useState("We talked");
+  const [outcome, setOutcome] = useState(outcomeByMethod.Call[0]);
   const [note, setNote] = useState("");
   const [nextAction, setNextAction] = useState("Check in again");
   const [dueOn, setDueOn] = useState("");
@@ -67,7 +71,7 @@ export default function AlumniStaffDemo({
   function selectPerson(person: DemoPerson) {
     setSelectedId(person.id);
     setChannel(person.contactPreference);
-    setOutcome("We talked");
+    setOutcome(outcomeByMethod[person.contactPreference][0]);
     setNote("");
     setNextAction("Check in again");
     setDueOn("");
@@ -110,7 +114,7 @@ export default function AlumniStaffDemo({
     setActivities([]);
     setSelectedId(initialPeople[0].id);
     setChannel("Call");
-    setOutcome("We talked");
+    setOutcome(outcomeByMethod.Call[0]);
     setNote("");
     setNextAction("Check in again");
     setDueOn("");
@@ -118,28 +122,43 @@ export default function AlumniStaffDemo({
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="rounded-3xl border border-sky-400/30 bg-gradient-to-r from-slate-900 to-slate-800 p-5 sm:p-7">
+    <main className="min-h-screen bg-slate-950 px-3 py-4 text-slate-100 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-6">
+        <header className="rounded-2xl border border-sky-400/30 bg-gradient-to-r from-slate-900 to-slate-800 p-4 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Simple Path Recovery</p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight">Alumni Connect</h1>
-              <p className="mt-2 text-sm text-slate-300">Staff workflow lab · Sign in → person → outcome → next step</p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Alumni Connect</h1>
+              <p className="mt-1 text-sm text-slate-300">Choose a person. Log an outcome. Set the next step.</p>
             </div>
-            <span className="rounded-full border border-amber-400/50 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-200">FICTIONAL DEMO · NO REAL MESSAGES</span>
+            <span className="rounded-full border border-amber-400/50 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-200">FICTIONAL DEMO · NO MESSAGES SENT</span>
           </div>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-            <span>Signed in: {staffEmail} · Current legacy profile role: {legacyRole}</span>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+            <span className="break-all">Staff: {staffEmail} · Role: {legacyRole}</span>
             <div className="flex gap-3">
               <button onClick={resetDemo} className="rounded-lg border border-slate-600 px-3 py-2 text-slate-100 hover:bg-slate-700">Reset demo</button>
-              <Link href="/" className="rounded-lg border border-slate-700 px-3 py-2 text-slate-300 hover:bg-slate-800">Legacy homepage</Link>
             </div>
           </div>
         </header>
 
-        <section className="grid gap-5 lg:grid-cols-[280px_1fr]">
-          <aside className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <label className="grid gap-1.5 rounded-xl border border-sky-400/30 bg-slate-900 p-3 text-sm font-semibold lg:hidden">
+          Choose alumnus
+          <select
+            aria-label="Choose fictional alumnus"
+            className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-3 text-base text-white"
+            value={selectedId}
+            onChange={(event) => {
+              const person = people.find((item) => item.id === event.target.value);
+              if (person) selectPerson(person);
+            }}
+          >
+            {people.map((person) => (
+              <option key={person.id} value={person.id}>{person.name} · {person.contactAllowed ? "Contact allowed" : "Do not contact"}</option>
+            ))}
+          </select>
+        </label>
+        <section className="grid gap-3 lg:grid-cols-[280px_1fr] lg:gap-5">
+          <aside className="hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 lg:block">
             <h2 className="text-lg font-semibold">People</h2>
             <p className="mb-4 mt-1 text-xs text-slate-400">Fictional records, not an alumni import.</p>
             <div className="space-y-2">
@@ -158,7 +177,7 @@ export default function AlumniStaffDemo({
           </aside>
 
           <div className="space-y-5">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold">{selected.name}</h2>
@@ -169,12 +188,16 @@ export default function AlumniStaffDemo({
                 </span>
               </div>
 
-              <div className="mt-5 border-t border-slate-800 pt-5">
-                <h3 className="text-base font-semibold">Record an outreach outcome</h3>
-                <p className="mt-1 text-xs text-slate-400">This does not start a call, send a text, or send an email. It only rehearses the documentation sequence in this browser session.</p>
-                <form onSubmit={recordDemoOutcome} className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="mt-3 border-t border-slate-800 pt-3 sm:mt-5 sm:pt-5">
+                <h3 className="text-base font-semibold">Log contact outcome</h3>
+                <p className="mt-1 text-xs text-slate-400">Simulation only. No call, text or email is sent. Entries reset when you refresh.</p>
+                <form onSubmit={recordDemoOutcome} className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm">Method
-                    <select value={channel} onChange={(event) => setChannel(event.target.value as Channel)}
+                    <select value={channel} onChange={(event) => {
+                      const method = event.target.value as Channel;
+                      setChannel(method);
+                      setOutcome(outcomeByMethod[method][0]);
+                    }}
                       disabled={!selected.contactAllowed} className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50">
                       {channels.map((value) => <option key={value} value={value}>{value} (simulation)</option>)}
                     </select>
@@ -182,17 +205,10 @@ export default function AlumniStaffDemo({
                   <label className="grid gap-2 text-sm">Outcome
                     <select value={outcome} onChange={(event) => setOutcome(event.target.value)}
                       disabled={!selected.contactAllowed} className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50">
-                      <option>We talked</option>
-                      <option>No answer</option>
-                      <option>Left a message</option>
-                      <option>Asked for a resource</option>
-                      <option>Requested a call back</option>
+                      {outcomeByMethod[channel].map((choice) => (
+                        <option key={choice}>{choice}</option>
+                      ))}
                     </select>
-                  </label>
-                  <label className="grid gap-2 text-sm sm:col-span-2">Short note (optional)
-                    <textarea rows={2} value={note} onChange={(event) => setNote(event.target.value)}
-                      disabled={!selected.contactAllowed} placeholder="A brief, fictional follow-up note"
-                      className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50" />
                   </label>
                   <label className="grid gap-2 text-sm">Next step
                     <input value={nextAction} onChange={(event) => setNextAction(event.target.value)}
@@ -204,6 +220,14 @@ export default function AlumniStaffDemo({
                       disabled={!selected.contactAllowed} required
                       className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50" />
                   </label>
+                  <details className="rounded-lg border border-slate-700 p-3 text-sm sm:col-span-2">
+                    <summary className="cursor-pointer font-medium text-sky-200">Add a note (optional)</summary>
+                    <label className="mt-3 grid gap-2">Short note
+                      <textarea rows={2} value={note} onChange={(event) => setNote(event.target.value)}
+                        disabled={!selected.contactAllowed} placeholder="Brief fictional follow-up note"
+                        className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50" />
+                    </label>
+                  </details>
                   <div className="sm:col-span-2">
                     <button type="submit" disabled={!selected.contactAllowed}
                       className="w-full rounded-xl bg-sky-300 px-4 py-3 font-bold text-slate-950 hover:bg-sky-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
@@ -216,7 +240,7 @@ export default function AlumniStaffDemo({
             </section>
 
             <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <h3 className="font-semibold">Interaction history</h3>
+              <h3 className="font-semibold">Interaction history <span className="text-sm font-normal text-slate-400">({personActivities.length})</span></h3>
               {personActivities.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No fictional contact outcomes recorded yet.</p>
               ) : <ol className="mt-4 space-y-3">
@@ -233,9 +257,9 @@ export default function AlumniStaffDemo({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-lg font-semibold">Follow-up work queue</h2>
-          <p className="mt-1 text-xs text-slate-400">Populates automatically when you record a fictional outcome.</p>
+        <section id="follow-up-queue" className="rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+          <h2 className="text-lg font-semibold">Follow-up work queue ({queue.length})</h2>
+          <p className="mt-1 text-xs text-slate-400">Simulated follow-ups appear here immediately. No records leave this page.</p>
           {queue.length === 0 ? <p className="mt-4 text-sm text-slate-400">No follow-ups scheduled in this demo session.</p> :
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {queue.map((person) => <button key={person.id} type="button" onClick={() => selectPerson(person)}
