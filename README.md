@@ -1,3 +1,9 @@
+> **CURRENT PROJECT (2026-10-22): SPR Alumni Connect**
+> This repository is being repurposed from the unused Digital Patient Whiteboard to SPR's independent alumni program. The original Whiteboard product details below are **historical only** and not current requirements. The approved five-step roadmap, actual build state, and next action are in [SPR_ALUMNI_PROJECT_STATUS.md](SPR_ALUMNI_PROJECT_STATUS.md).
+> No patient data may be copied into public issues or commits.
+
+---
+
 # Digital Patient Whiteboard / Outreach Movement Board
 
 ## Project Overview
