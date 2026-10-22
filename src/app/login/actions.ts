@@ -11,6 +11,7 @@ export async function signIn(formData: FormData) {
     .toLowerCase();
 
   const password = String(formData.get("password") || "");
+  const demoDestination = formData.get("next") === "/alumni-demo" ? "/alumni-demo" : null;
 
   if (!email || !password) {
     redirect(
@@ -54,6 +55,11 @@ export async function signIn(formData: FormData) {
         `Login succeeded, but profile lookup failed: ${profileError.message}`,
       )}`,
     );
+  }
+
+  // Exact internal destination allowlist prevents external redirects.
+  if (demoDestination) {
+    redirect(demoDestination);
   }
 
   const loginEmail = (user.email || "").toLowerCase();
