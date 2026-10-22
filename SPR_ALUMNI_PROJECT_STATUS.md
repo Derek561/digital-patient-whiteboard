@@ -26,6 +26,16 @@
 6. **Demo work is expressly expected.** Use fictional records and safe test actions until access, privacy, consent and messaging have been verified for real use. Do not treat compliance/contractual safeguards as blanket permission to send live messages.
 7. Ordinary UI/wording/task-order refinements stay within approved work. Material changes to authority, access, privacy, subscriptions or integrations become recorded decisions. We correct specific defects proportionately rather than building new permanent rules from every incident.
 
+## Alumni eligibility (program policy) | Confirmed 2026-10-22
+
+**Any person who has ever been admitted to SPR is eligible for the SPR Alumni Program, regardless of discharge reason or treatment-completion status.** This includes completed treatment, discharge against advice, administrative discharge, transfer, early departure, or return after recurrence of substance use. None of those circumstances automatically removes alumni eligibility. The user reports **zero current bans/exclusions**.
+
+An individual could be excluded only by a specific authorized, documented SPR administrative decision for a legitimate safety/program reason; do not infer or automatically create an exclusion from a discharge code. Such restrictions must be subject to review and should not erase historical records.
+
+**Critical separations for implementation:** (1) eligibility based on verified admission, (2) voluntary enrollment, (3) affirmative, current consent and channel-level contact preferences, and (4) any individually documented participation restriction. Eligible does NOT mean automatically enrolled or authorized to receive outreach. Opt-out/revocation does NOT equal a ban. Do not use an unconsented patient list for alumni messaging. The program must remain welcoming without requiring continued housing, current treatment, abstinence, meeting attendance, or a favorable discharge type.
+
+This is a **program policy decision**, not evidence that related eligibility checks have been coded, legally reviewed, or deployed. It refines the approved blueprint without adding an engineering milestone.
+
 ## Five approved milestones
 
 | # | Milestone | Status | Evidence needed |
