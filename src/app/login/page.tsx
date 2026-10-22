@@ -3,28 +3,31 @@ import { signIn } from "./actions";
 type LoginPageProps = {
   searchParams?: Promise<{
     message?: string;
+    next?: string;
   }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const message = params?.message;
+  const alumniDemoLogin = params?.next === "/alumni-demo";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-100">
       <section className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl shadow-black/30">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
-          Digital Patient Whiteboard
+          {alumniDemoLogin ? "SPR Alumni Connect" : "Digital Patient Whiteboard"}
         </p>
 
         <h1 className="mt-4 text-3xl font-bold text-white">Sign in</h1>
 
         <p className="mt-3 text-sm leading-6 text-slate-400">
           Enter your approved staff email and password to access the outreach
-          movement board.
+          {alumniDemoLogin ? "alumni staff demo" : "outreach movement board"}.
         </p>
 
         <form action={signIn} className="mt-6 flex flex-col gap-4">
+          {alumniDemoLogin && <input type="hidden" name="next" value="/alumni-demo" />}
           <label className="flex flex-col gap-2 text-sm text-slate-300">
             Email address
             <input
