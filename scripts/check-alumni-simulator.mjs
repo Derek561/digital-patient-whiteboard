@@ -19,12 +19,16 @@ for (const table of tables) {
     const response = await fetch(url + "/rest/v1/" + table + "?select=*&limit=0", {
       headers: { apikey: key, Authorization: "Bearer " + key, Accept: "application/json" }
     });
-    if (!response.ok) {
-      const detail = (await response.text()).slice(0, 300);
-      console.log("FAIL", table, response.status, detail);
-      failed = true;
+    if (response.ok) {
+      console.log("PASS", table, "REST endpoint reachable (zero rows requested)");
     } else {
-      console.log("PASS", table, "REST endpoint accessible (zero rows requested)");
+      const detail = await response.json().catch(() => ({}));
+      if (response.status === 401 && detail.code === "42501" && String(detail.message).includes("permission denied for table")) {
+        console.log("PASS", table, "API reachable; anonymous SELECT correctly restricted");
+      } else {
+        console.log("FAIL", table, response.status, JSON.stringify(detail).slice(0, 240));
+        failed = true;
+      }
     }
   } catch (error) {
     console.log("FAIL", table, String(error));
@@ -35,4 +39,4 @@ if (failed) {
   console.error("Simulator API preflight incomplete. Do not treat this environment as ready.");
   process.exit(1);
 }
-console.log("Simulator API preflight passed. This does not verify staff sign-in or authorized RLS access.");
+console.log("Simulator API endpoint preflight passed. Authenticated staff access still requires a separate sign-in test.");
