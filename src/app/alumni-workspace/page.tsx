@@ -1,97 +1,40 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed","Other"] as const;
-
-async function requireStaff() {
-  const db = await createSupabaseServerClient();
-  const { data: { user } } = await db.auth.getUser();
-  if (!user) redirect("/login?next=%2Falumni-workspace");
-  const { data: profile } = await db.from("profiles").select("is_active").eq("id", user.id).maybeSingle();
-  const { data: alumniStaff } = await db.from("alumni_staff_roles").select("alumni_role,is_active").eq("staff_id", user.id).maybeSingle();
-  if (!profile?.is_active || !alumniStaff?.is_active) redirect("/login?message=Alumni%20access%20not%20active");
-  return { db, user, alumniRole: alumniStaff.alumni_role };
-}
-
-async function recordFictionalContact(form: FormData) {
-  "use server";
-  const { db, user } = await requireStaff();
-  const alumniId = String(form.get("alumni_id") ?? "");
-  const channel = String(form.get("channel") ?? "");
-  const note = String(form.get("note") ?? "").trim();
-  const nextAction = String(form.get("next_action") ?? "").trim();
-  const otherAction = String(form.get("other_action") ?? "").trim();
-  const finalAction = nextAction === "Other" ? otherAction : nextAction;
-  const dueOn = String(form.get("due_on") ?? "");
-  if (!["sms", "email", "call"].includes(channel) || !note || note.length > 500 || (!NEXT_ACTIONS.some(choice => choice === nextAction) || (nextAction === "Other" && (!otherAction || otherAction.length > 120))) || !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
-    redirect("/alumni-workspace?error=Please%20complete%20all%20fields");
-  }
-  const { data: person } = await db.from("alumni_people").select("id,is_fictional,sms_allowed,email_allowed,call_allowed").eq("id", alumniId).maybeSingle();
-  if (!person?.is_fictional || !(channel === "sms" ? person.sms_allowed : channel === "email" ? person.email_allowed : person.call_allowed)) {
-    redirect("/alumni-workspace?error=Contact%20not%20permitted");
-  }
-  const { data: conversation, error: cError } = await db.from("alumni_conversations").insert({ alumni_id: alumniId, channel, assigned_staff_id: user.id }).select("id").single();
-  if (cError || !conversation) redirect("/alumni-workspace?error=Could%20not%20save%20conversation");
-  const { error: mError } = await db.from("alumni_messages").insert({ conversation_id: conversation.id, direction: "outbound", body: note, delivery_state: "simulated", created_by: user.id });
-  if (mError) redirect("/alumni-workspace?error=Could%20not%20save%20message");
-  const { error: fError } = await db.from("alumni_followups").insert({ alumni_id: alumniId, conversation_id: conversation.id, assigned_staff_id: user.id, next_action: finalAction, due_on: dueOn });
-  if (fError) redirect("/alumni-workspace?error=Could%20not%20save%20followup");
-  await db.from("alumni_events").insert({ alumni_id: alumniId, actor_id: user.id, event_type: "fictional_contact_recorded", object_type: "conversation", object_id: conversation.id, event_data: { channel } });
-  revalidatePath("/alumni-workspace");
-  redirect("/alumni-workspace?saved=1");
-}
-
-export default async function AlumniWorkspace({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  const { db, user, alumniRole } = await requireStaff();
-  const params = await searchParams;
-  const [{ data: people, error: peopleError }, { data: conversations }, { data: followups }, { data: staffProfiles }] = await Promise.all([
-    db.from("alumni_people").select("id,display_name,sms_allowed,email_allowed,call_allowed").order("display_name"),
-    db.from("alumni_conversations").select("id,alumni_id,channel,created_at,assigned_staff_id").order("created_at", { ascending: false }).limit(30),
-    db.from("alumni_followups").select("id,alumni_id,next_action,due_on,status,assigned_staff_id").eq("status","open").order("due_on").limit(30),
-    db.from("profiles").select("id,full_name"),
-  ]);
-  const label = new Map<string, string>((people ?? []).map(p => [p.id, p.display_name] as const));
-  const staffLabel = new Map<string, string>((staffProfiles ?? []).map(p => [p.id, p.full_name || "Staff member"] as const));
-  return <main className="min-h-screen bg-slate-950 p-4 text-white sm:p-8">
-    <div className="mx-auto max-w-5xl space-y-6">
-      <header className="rounded-2xl border border-sky-800 bg-slate-900 p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-sky-300">Simple Path Recovery</p>
-        <h1 className="mt-1 text-3xl font-bold">Alumni Connect | Saved Demo</h1>
-        <p className="mt-2 text-sm text-slate-300">Fictional contacts, real database storage. No calls or messages are sent.</p>
-        <p className="mt-2 text-xs text-slate-400">Signed in: {user.email} · {alumniRole === "admin" ? "Administrator" : "Liaison"} · Shared alumni access</p>
-      </header>
-      <Link href="/alumni-workspace/inbox" className="block rounded-xl border border-sky-600 bg-sky-900/30 p-4 font-semibold text-sky-200 hover:bg-sky-900/50">Open shared conversation inbox →</Link>
-      <section className="rounded-xl border border-slate-700 bg-slate-900 p-4"><h2 className="font-semibold">Alumni profiles and unified histories</h2><div className="mt-3 flex flex-wrap gap-2">{(people ?? []).map(p => <Link key={p.id} href={"/alumni-workspace/alumni/" + p.id} className="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-sky-300">{p.display_name}</Link>)}</div></section>
-      {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional interaction and follow-up saved in Supabase.</p>}
-      {params.error && <p role="alert" className="rounded-lg bg-rose-900 p-3">{params.error}</p>}
-      {peopleError && <p role="alert">Unable to load fictional alumni records.</p>}
-      <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
-        <h2 className="text-xl font-semibold">Record a fictional interaction</h2><p className="mt-1 text-sm text-slate-300">All active alumni staff can help with any permitted contact. Actions are attributed to the staff member who records them.</p>
-        <form action={recordFictionalContact} className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm">Alumnus
-            <select name="alumni_id" required className="rounded-lg bg-slate-950 p-3">{(people ?? []).filter(p=>p.sms_allowed||p.email_allowed||p.call_allowed).map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select>
-          </label>
-          <label className="grid gap-2 text-sm">Method
-            <select name="channel" className="rounded-lg bg-slate-950 p-3"><option value="sms">Text (simulation)</option><option value="email">Email (simulation)</option><option value="call">Call (simulation)</option></select>
-          </label>
-          <label className="grid gap-2 text-sm sm:col-span-2">What happened (fictional)
-            <textarea name="note" maxLength={500} required placeholder="Example: Simulated reply requesting a check-in" className="min-h-24 rounded-lg bg-slate-950 p-3"/>
-          </label>
-          <label className="grid gap-2 text-sm">Next step<select name="next_action" defaultValue="Check in again" required className="rounded-lg bg-slate-950 p-3">{NEXT_ACTIONS.map(choice=><option key={choice} value={choice}>{choice}</option>)}</select></label>
-       <details className="sm:col-span-2 rounded-lg border border-slate-700 p-3 text-sm"><summary className="cursor-pointer text-sky-200">Other action: add a short description if selected</summary><label className="mt-3 grid gap-1">Describe other action<input name="other_action" maxLength={120} className="rounded-lg bg-slate-950 p-3" placeholder="Only needed when choosing Other"/></label></details>
-          <label className="grid gap-2 text-sm">Follow-up date<input name="due_on" type="date" required className="rounded-lg bg-slate-950 p-3"/></label>
-          <button type="submit" className="rounded-xl bg-sky-300 p-3 font-semibold text-slate-950 sm:col-span-2">Save fictional contact and follow-up</button>
-        </form>
-        <p className="mt-3 text-xs text-amber-300">Alumni with revoked permissions remain in the directory but cannot be contacted. Every submission is rechecked on the server.</p>
-      </section>
-      <div className="grid gap-5 md:grid-cols-2">
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5"><h2 className="text-lg font-semibold">Saved conversation history ({conversations?.length ?? 0})</h2>
-        <ul className="mt-3 space-y-2">{(conversations ?? []).map(c=><li className="rounded-lg bg-slate-950 p-3 text-sm" key={c.id}>{label.get(c.alumni_id) ?? "Fictional alumnus"} · {c.channel.toUpperCase()}<p className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()} · Recorded by: {staffLabel.get(c.assigned_staff_id ?? "") ?? "Unknown staff"}</p></li>)}</ul></section>
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5"><h2 className="text-lg font-semibold">Shared follow-up queue ({followups?.length ?? 0})</h2>
-        <ul className="mt-3 space-y-2">{(followups ?? []).map(f=><li key={f.id} className="rounded-lg bg-slate-950 p-3 text-sm"><strong>{label.get(f.alumni_id) ?? "Fictional alumnus"}</strong><p>{f.next_action}</p><p className="text-xs text-sky-300">Due {f.due_on} · Assigned to: {staffLabel.get(f.assigned_staff_id ?? "") ?? "Unassigned"}</p></li>)}</ul></section>
-      </div>
-    </div>
-  </main>;
+import {redirect} from "next/navigation";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+import AlumniDirectory from "@/components/AlumniDirectory";
+export default async function AlumniToday({searchParams}:{searchParams:Promise<{view?:string}>}){
+ const db=await createSupabaseServerClient();
+ const {data:{user}}=await db.auth.getUser();
+ if(!user)redirect("/login?next=%2Falumni-workspace");
+ const [{data:profile},{data:staff}]=await Promise.all([
+ db.from("profiles").select("full_name,is_active").eq("id",user.id).maybeSingle(),
+ db.from("alumni_staff_roles").select("alumni_role,is_active").eq("staff_id",user.id).maybeSingle()
+ ]);
+ if(!profile?.is_active||!staff?.is_active)redirect("/login?message=Alumni%20access%20not%20active");
+ const [{data:people},{data:followups},{data:conversations},{data:support},{data:staffProfiles}]=await Promise.all([
+ db.from("alumni_people").select("id,display_name,sms_allowed,email_allowed,call_allowed").order("display_name").limit(500),
+ db.from("alumni_followups").select("id,alumni_id,next_action,due_on,status,assigned_staff_id").eq("status","open").order("due_on",{ascending:true}).limit(200),
+ db.from("alumni_conversations").select("id,alumni_id,channel,created_at").order("created_at",{ascending:false}).limit(8),
+ db.from("alumni_support_requests").select("id,alumni_id,status").limit(200),
+ db.from("profiles").select("id,full_name")
+ ]);
+ const params=await searchParams;const view=params.view==="directory"?"directory":"today";
+ const names=new Map((people??[]).map(p=>[p.id,p.display_name]));
+ const staffNames=new Map((staffProfiles??[]).map(p=>[p.id,p.full_name]));
+ const myQueue=(followups??[]).filter(f=>f.assigned_staff_id===user.id);
+ const due=(followups??[]).filter(f=>f.due_on<=new Date().toISOString().slice(0,10));
+ const display=profile.full_name||user.email?.split("@")[0]||"Staff";
+ const routes=[{label:"Today",href:"/alumni-workspace",sym:"◫",active:view==="today"},{label:"Inbox",href:"/alumni-workspace/inbox",sym:"✉",active:false},{label:"Alumni",href:"/alumni-workspace?view=directory",sym:"◎",active:view==="directory"},{label:"Record contact",href:"/alumni-workspace/record",sym:"＋",active:false}];
+ return <main className="ac-app">
+ <aside className="ac-sidebar"><div className="ac-brand"><div className="ac-brand-mark">SPR</div><div><strong>Alumni Connect</strong><small>Simple Path Recovery</small></div></div>
+ <div className="ac-demo">FICTIONAL SIMULATOR</div><nav className="ac-nav" aria-label="Main navigation">{routes.map(r=><Link href={r.href} className={r.active?"ac-nav-active":""} key={r.label}><span>{r.sym}</span>{r.label}</Link>)}</nav>
+ <div className="ac-side-bottom"><div className="ac-identity"><span className="ac-avatar">{display.slice(0,2).toUpperCase()}</span><div><strong>{display}</strong><small>{staff.alumni_role==="admin"?"Administrator":"Alumni liaison"}</small></div></div><p>Nothing here sends real messages.</p></div></aside>
+ <div className="ac-main"><header className="ac-topbar"><div><div className="ac-eyebrow">SPR ALUMNI CONTINUITY</div><h1>{view==="today"?"Today":"Alumni"}</h1><p>{view==="today"?"One place to see what matters and take action.":"Find anyone, review their history, and continue the relationship."}</p></div><div className="ac-top-actions"><span className="ac-sim-pill">● Simulator</span><Link href="/alumni-workspace/record" className="ac-primary">+ Record contact</Link></div></header>
+ {view==="directory"?<AlumniDirectory people={people??[]}/>:<>
+ <section className="ac-stats"><Link href="/alumni-workspace?view=directory" className="ac-stat"><span>Enrolled alumni</span><strong>{people?.length??0}</strong><small>Fictional profiles</small></Link><a href="#my-work" className="ac-stat"><span>My follow-ups</span><strong>{myQueue.length}</strong><small>Assigned to you</small></a><a href="#team-work" className="ac-stat"><span>Due or overdue</span><strong>{due.length}</strong><small>Shared staff responsibility</small></a><a href="#support" className="ac-stat"><span>Support requests</span><strong>{support?.filter(s=>s.status!=="resolved"&&s.status!=="closed").length??0}</strong><small>Open or in progress</small></a></section>
+ <div className="ac-columns"><section id="my-work" className="ac-card"><div className="ac-card-head"><div><h2>Your next actions</h2><p>What's assigned to you, prioritized by due date.</p></div><span className="ac-count">{myQueue.length} open</span></div><div className="ac-task-list">{myQueue.slice(0,8).length?myQueue.slice(0,8).map(f=><Link className="ac-task" href={"/alumni-workspace/alumni/"+f.alumni_id} key={f.id}><span className="ac-task-dot"/><span><strong>{f.next_action}</strong><small>{names.get(f.alumni_id)??"Alumnus"} · Due {f.due_on}</small></span><span className="ac-arrow">›</span></Link>):<div className="ac-empty">You're all caught up. New assignments will appear here.</div>}</div></section>
+ <section id="team-work" className="ac-card"><div className="ac-card-head"><div><h2>Team follow-ups</h2><p>Shared work. Any authorized staff member can help.</p></div><span className="ac-count">{followups?.length??0} open</span></div><div className="ac-task-list">{(followups??[]).slice(0,8).length?(followups??[]).slice(0,8).map(f=><Link className="ac-task" href={"/alumni-workspace/alumni/"+f.alumni_id} key={f.id}><span className="ac-task-dot team"/><span><strong>{f.next_action}</strong><small>{names.get(f.alumni_id)??"Alumnus"} · {staffNames.get(f.assigned_staff_id)??"Unassigned"} · {f.due_on}</small></span><span className="ac-arrow">›</span></Link>):<div className="ac-empty">No team follow-ups yet.</div>}</div></section></div>
+ <section className="ac-card"><div className="ac-card-head"><div><h2>Recent conversations</h2><p>Pick up where another staff member left off.</p></div><Link href="/alumni-workspace/inbox" className="ac-link">Open inbox →</Link></div><div className="ac-recent">{(conversations??[]).length?(conversations??[]).map(c=><Link href={"/alumni-workspace/inbox?thread="+c.id} className="ac-recent-row" key={c.id}><span className="ac-avatar">{(names.get(c.alumni_id)??"AL").slice(0,2).toUpperCase()}</span><span><strong>{names.get(c.alumni_id)??"Fictional alumnus"}</strong><small>{c.channel.toUpperCase()} · {new Date(c.created_at).toLocaleDateString()}</small></span><span className="ac-arrow">›</span></Link>):<div className="ac-empty">No conversations yet. You can record a fictional contact to start.</div>}</div></section>
+ <section id="support" className="ac-footnote"><strong>Full simulator under construction.</strong> This first integrated staff home uses actual simulator data. Support, campaigns, community and administrative reporting will join this workspace as working simulated flows. No live sending.</section>
+ </>}</div></main>;
 }
