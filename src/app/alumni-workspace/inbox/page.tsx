@@ -1,3 +1,4 @@
+import AlumniSectionNav from "@/components/AlumniSectionNav";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -57,7 +58,7 @@ export default async function SharedInbox({ searchParams }: { searchParams: Prom
   const { data: messages, error: messagesError } = selected
     ? await db.from("alumni_messages").select("id,direction,body,created_by,created_at").eq("conversation_id", selected.id).order("created_at", { ascending: true }).limit(100)
     : { data: [], error: null };
-  return <main className="min-h-screen bg-slate-950 p-4 text-slate-100 sm:p-7">
+  return <main className="ac-unified-page"><AlumniSectionNav current="inbox"/>
     <div className="mx-auto max-w-6xl space-y-4">
       <header className="rounded-2xl border border-sky-700/40 bg-slate-900 p-5">
         <p className="text-xs font-bold uppercase tracking-widest text-sky-300">Simple Path Recovery</p>
