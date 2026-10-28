@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed"] as const;
+const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed","Other"] as const;
 
 const base = "/alumni-workspace/alumni/";
 async function authorize() {
@@ -23,13 +23,15 @@ async function addFollowup(form: FormData) {
   const { db, user } = await authorize();
   const alumniId = String(form.get("alumni_id") ?? "");
   const action = String(form.get("action") ?? "").trim();
+  const otherAction = String(form.get("other_action") ?? "").trim();
+  const finalAction = action === "Other" ? otherAction : action;
   const due = String(form.get("due") ?? "");
   const assignee = String(form.get("assignee") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(alumniId) || !NEXT_ACTIONS.some(choice => choice === action) || !/^\d{4}-\d{2}-\d{2}$/.test(due)) redirect("/alumni-workspace");
+  if (!/^[0-9a-f-]{36}$/i.test(alumniId) || (!NEXT_ACTIONS.some(choice => choice === action) || (action === "Other" && (!otherAction || otherAction.length > 120))) || !/^\d{4}-\d{2}-\d{2}$/.test(due)) redirect("/alumni-workspace");
   const { data: person } = await db.from("alumni_people").select("id,is_fictional").eq("id",alumniId).maybeSingle();
   const { data: assigned } = await db.from("alumni_staff_roles").select("staff_id").eq("staff_id",assignee).eq("is_active",true).maybeSingle();
   if (!person?.is_fictional || !assigned) redirect(base+alumniId+"?error=Invalid%20assignment");
-  const { data: task, error } = await db.from("alumni_followups").insert({alumni_id:alumniId,next_action:action,due_on:due,assigned_staff_id:assignee}).select("id").single();
+  const { data: task, error } = await db.from("alumni_followups").insert({alumni_id:alumniId,next_action:finalAction,due_on:due,assigned_staff_id:assignee}).select("id").single();
   if (error || !task) redirect(base+alumniId+"?error=Could%20not%20create%20follow-up");
   await db.from("alumni_events").insert({alumni_id:alumniId,actor_id:user.id,event_type:"followup_created",object_type:"followup",object_id:task.id,event_data:{assigned_staff_id:assignee}});
   revalidatePath(base+alumniId);
@@ -101,6 +103,7 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
      <form action={addFollowup} className="mt-3 grid gap-3 sm:grid-cols-2">
        <input type="hidden" name="alumni_id" value={id}/>
        <label className="grid gap-1 text-sm sm:col-span-2">Next action<select name="action" required defaultValue="" className="rounded-lg bg-slate-950 p-3"><option value="" disabled>Choose next action</option>{NEXT_ACTIONS.map(choice=><option key={choice} value={choice}>{choice}</option>)}</select></label>
+       <details className="sm:col-span-2 rounded-lg border border-slate-700 p-3 text-sm"><summary className="cursor-pointer text-sky-200">Other action: add a short description if selected</summary><label className="mt-3 grid gap-1">Describe other action<input name="other_action" maxLength={120} className="rounded-lg bg-slate-950 p-3" placeholder="Only needed when choosing Other"/></label></details>
        <label className="grid gap-1 text-sm">Due date<input name="due" type="date" required className="rounded-lg bg-slate-950 p-3"/></label>
        <label className="grid gap-1 text-sm">Who will follow up?<select name="assignee" defaultValue={user.id} className="rounded-lg bg-slate-950 p-3">{allowedStaff.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
        <button type="submit" className="rounded-lg bg-sky-300 p-3 font-semibold text-slate-950 sm:col-span-2">Save follow-up</button>
