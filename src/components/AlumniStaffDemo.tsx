@@ -35,8 +35,8 @@ const initialPeople: DemoPerson[] = [
 const channels: Channel[] = ["Call", "Text", "Email"];
 const outcomeByMethod: Record<Channel, string[]> = {
   Call: ["We talked", "No answer", "Left a voicemail", "Requested a callback", "Asked for a resource"],
-  Text: ["Text sent", "Reply received", "No reply yet", "Requested a callback", "Asked for a resource"],
-  Email: ["Email sent", "Reply received", "No reply yet", "Requested a callback", "Asked for a resource"],
+  Text: ["Test message prepared", "Fictional reply received", "No reply (fictional)", "Requested a callback", "Asked for a resource"],
+  Email: ["Test email prepared", "Fictional reply received", "No reply (fictional)", "Requested a callback", "Asked for a resource"],
 };
 
 function formatDue(date: string) {
@@ -59,6 +59,8 @@ export default function AlumniStaffDemo({
   const [nextAction, setNextAction] = useState("Check in again");
   const [dueOn, setDueOn] = useState("");
   const [notice, setNotice] = useState("");
+  const [activeContact, setActiveContact] = useState<Channel | null>(null);
+  const [draft, setDraft] = useState("");
 
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
   const personActivities = activities.filter((entry) => entry.personId === selected.id);
@@ -68,8 +70,22 @@ export default function AlumniStaffDemo({
     [people],
   );
 
+  function beginContact(method: Channel) {
+    if (!selected.contactAllowed) {
+      setNotice("Contact blocked: permission has been revoked.");
+      return;
+    }
+    setChannel(method);
+    setOutcome(outcomeByMethod[method][0]);
+    setActiveContact(method);
+    setDraft("");
+    setNotice(`${method} test opened. Nothing has been sent or dialed.`);
+  }
+
   function selectPerson(person: DemoPerson) {
     setSelectedId(person.id);
+    setActiveContact(null);
+    setDraft("");
     setChannel(person.contactPreference);
     setOutcome(outcomeByMethod[person.contactPreference][0]);
     setNote("");
@@ -80,6 +96,10 @@ export default function AlumniStaffDemo({
 
   function recordDemoOutcome(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!activeContact || activeContact !== channel) {
+      setNotice("Choose a communication action first.");
+      return;
+    }
     // Authorization is demonstrated in the UI only; this never sends a real message.
     if (!selected.contactAllowed) {
       setNotice("Blocked: this fictional person has revoked contact permission.");
@@ -107,9 +127,13 @@ export default function AlumniStaffDemo({
       : person));
     setNotice(`Fictional ${channel.toLowerCase()} outcome recorded. Follow-up now appears in the work queue.`);
     setNote("");
+    setActiveContact(null);
+    setDraft("");
   }
 
   function resetDemo() {
+    setActiveContact(null);
+    setDraft("");
     setPeople(initialPeople);
     setActivities([]);
     setSelectedId(initialPeople[0].id);
@@ -129,7 +153,7 @@ export default function AlumniStaffDemo({
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Simple Path Recovery</p>
               <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Alumni Connect</h1>
-              <p className="mt-1 text-sm text-slate-300">Choose a person. Log an outcome. Set the next step.</p>
+              <p className="mt-1 text-sm text-slate-300">Choose an alumnus. Reach out. Follow through.</p>
             </div>
             <span className="rounded-full border border-amber-400/50 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-200">FICTIONAL DEMO · NO MESSAGES SENT</span>
           </div>
@@ -189,19 +213,34 @@ export default function AlumniStaffDemo({
               </div>
 
               <div className="mt-3 border-t border-slate-800 pt-3 sm:mt-5 sm:pt-5">
-                <h3 className="text-base font-semibold">Log contact outcome</h3>
-                <p className="mt-1 text-xs text-slate-400">Simulation only. No call, text or email is sent. Entries reset when you refresh.</p>
-                <form onSubmit={recordDemoOutcome} className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm">Method
-                    <select value={channel} onChange={(event) => {
-                      const method = event.target.value as Channel;
-                      setChannel(method);
-                      setOutcome(outcomeByMethod[method][0]);
-                    }}
-                      disabled={!selected.contactAllowed} className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50">
-                      {channels.map((value) => <option key={value} value={value}>{value} (simulation)</option>)}
-                    </select>
-                  </label>
+                <h3 className="text-base font-semibold">Contact this alumnus</h3>
+                <p className="mt-1 text-sm text-slate-400">Choose how to reach out. Test mode: no calls are placed and no messages are delivered.</p>
+                <div className="mt-4 grid grid-cols-3 gap-2" role="group" aria-label="Communication method">
+                  {channels.map((method) => (
+                    <button key={method} type="button" disabled={!selected.contactAllowed}
+                      onClick={() => beginContact(method)}
+                      aria-pressed={activeContact === method}
+                      className={`rounded-xl border px-2 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${activeContact === method ? "border-sky-300 bg-sky-300 text-slate-950" : "border-slate-600 bg-slate-950 text-white hover:border-sky-300"}`}>
+                      {method === "Call" ? "Call" : method === "Text" ? "Text" : "Email"}
+                    </button>
+                  ))}
+                </div>
+                {!selected.contactAllowed && <p className="mt-3 text-sm font-semibold text-rose-300">Do not contact. Permission revoked.</p>}
+                {activeContact && selected.contactAllowed && (
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-100" role="status">
+                      {activeContact === "Call" ? "Test call opened. No number was dialed." : activeContact === "Text" ? "Test text composer opened. Nothing will be sent." : "Test email composer opened. Nothing will be sent."}
+                    </div>
+                    {activeContact !== "Call" && (
+                      <label className="grid gap-2 text-sm">Draft {activeContact.toLowerCase()} (test only)
+                        <textarea rows={3} value={draft} onChange={(event) => setDraft(event.target.value)}
+                          maxLength={1000} placeholder="Write a sample message. It will not be delivered or saved."
+                          className="rounded-lg border border-slate-600 bg-slate-950 p-3" />
+                      </label>
+                    )}
+                    <h4 className="font-semibold">Record what happened (fictional)</h4>
+                    <form onSubmit={recordDemoOutcome} className="grid gap-3 sm:grid-cols-2">
+
                   <label className="grid gap-2 text-sm">Outcome
                     <select value={outcome} onChange={(event) => setOutcome(event.target.value)}
                       disabled={!selected.contactAllowed} className="rounded-lg border border-slate-600 bg-slate-950 p-3 disabled:opacity-50">
@@ -231,11 +270,14 @@ export default function AlumniStaffDemo({
                   <div className="sm:col-span-2">
                     <button type="submit" disabled={!selected.contactAllowed}
                       className="w-full rounded-xl bg-sky-300 px-4 py-3 font-bold text-slate-950 hover:bg-sky-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
-                      {selected.contactAllowed ? "Record fictional outcome and follow-up" : "Contact recording blocked by revoked permission"}
+                      Record test outcome and follow-up
                     </button>
                     <p aria-live="polite" className="mt-3 min-h-5 text-sm text-sky-200">{notice}</p>
                   </div>
-                </form>
+                    </form>
+                  </div>
+                )}
+                <p aria-live="polite" className="mt-3 text-sm text-sky-200">{!activeContact ? notice : ""}</p>
               </div>
             </section>
 
@@ -246,7 +288,7 @@ export default function AlumniStaffDemo({
               ) : <ol className="mt-4 space-y-3">
                 {personActivities.map((entry) => <li key={entry.id} className="rounded-xl border border-slate-700 p-3">
                   <div className="flex flex-wrap justify-between gap-2 text-sm">
-                    <strong>{entry.channel}: {entry.outcome}</strong>
+                    <strong>Test {entry.channel}: {entry.outcome}</strong>
                     <span className="text-xs text-slate-400">{new Date(entry.recordedAt).toLocaleString()}</span>
                   </div>
                   {entry.note && <p className="mt-2 text-sm text-slate-300">{entry.note}</p>}
