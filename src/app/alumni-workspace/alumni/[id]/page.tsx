@@ -1,3 +1,4 @@
+import AlumniSectionNav from "@/components/AlumniSectionNav";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -71,7 +72,7 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
  const {data:messages}=ids.length ? await db.from("alumni_messages").select("id,conversation_id,direction,body,created_at,created_by").in("conversation_id",ids).order("created_at",{ascending:true}).limit(500) : {data:[]};
  const channels=new Map<string,string>((conversations??[]).map(c=>[c.id,c.channel] as const));
  const history=(messages??[]).slice().sort((a,b)=>a.created_at.localeCompare(b.created_at));
- return <main className="min-h-screen bg-slate-950 p-4 text-slate-100 sm:p-7"><div className="mx-auto max-w-5xl space-y-5">
+ return <main className="ac-unified-page"><AlumniSectionNav current="history"/><div className="mx-auto max-w-5xl space-y-5">
    <header className="rounded-2xl border border-sky-700/40 bg-slate-900 p-5">
      <p className="text-xs font-bold uppercase tracking-widest text-sky-300">Simple Path Recovery</p>
      <h1 className="mt-1 text-2xl font-bold">{person.display_name} | Unified History</h1>
