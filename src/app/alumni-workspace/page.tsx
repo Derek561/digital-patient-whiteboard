@@ -53,13 +53,13 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
         <p className="text-xs font-semibold uppercase tracking-wider text-sky-300">Simple Path Recovery</p>
         <h1 className="mt-1 text-3xl font-bold">Alumni Connect | Saved Demo</h1>
         <p className="mt-2 text-sm text-slate-300">Fictional contacts, real database storage. No calls or messages are sent.</p>
-        <p className="mt-2 text-xs text-slate-400">Signed in: {user.email} · {alumniRole === "admin" ? "Administrator" : "Liaison"}</p>
+        <p className="mt-2 text-xs text-slate-400">Signed in: {user.email} · {alumniRole === "admin" ? "Administrator" : "Liaison"} · Shared alumni access</p>
       </header>
       {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional interaction and follow-up saved in Supabase.</p>}
       {params.error && <p role="alert" className="rounded-lg bg-rose-900 p-3">{params.error}</p>}
       {peopleError && <p role="alert">Unable to load fictional alumni records.</p>}
       <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
-        <h2 className="text-xl font-semibold">Record a fictional interaction</h2>
+        <h2 className="text-xl font-semibold">Record a fictional interaction</h2><p className="mt-1 text-sm text-slate-300">All active alumni staff can help with any permitted contact. Actions are attributed to the staff member who records them.</p>
         <form action={recordFictionalContact} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="grid gap-2 text-sm">Alumnus
             <select name="alumni_id" required className="rounded-lg bg-slate-950 p-3">{(people ?? []).filter(p=>p.sms_allowed||p.email_allowed||p.call_allowed).map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select>
@@ -74,7 +74,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
           <label className="grid gap-2 text-sm">Follow-up date<input name="due_on" type="date" required className="rounded-lg bg-slate-950 p-3"/></label>
           <button type="submit" className="rounded-xl bg-sky-300 p-3 font-semibold text-slate-950 sm:col-span-2">Save fictional contact and follow-up</button>
         </form>
-        <p className="mt-3 text-xs text-amber-300">Taylor Brooks is excluded because all contact permissions are revoked. Every submission is rechecked on the server.</p>
+        <p className="mt-3 text-xs text-amber-300">Alumni with revoked permissions remain in the directory but cannot be contacted. Every submission is rechecked on the server.</p>
       </section>
       <div className="grid gap-5 md:grid-cols-2">
         <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5"><h2 className="text-lg font-semibold">Saved conversation history ({conversations?.length ?? 0})</h2>
