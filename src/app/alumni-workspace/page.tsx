@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed"] as const;
+const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed","Other"] as const;
 
 async function requireStaff() {
   const db = await createSupabaseServerClient();
@@ -22,8 +22,10 @@ async function recordFictionalContact(form: FormData) {
   const channel = String(form.get("channel") ?? "");
   const note = String(form.get("note") ?? "").trim();
   const nextAction = String(form.get("next_action") ?? "").trim();
+  const otherAction = String(form.get("other_action") ?? "").trim();
+  const finalAction = nextAction === "Other" ? otherAction : nextAction;
   const dueOn = String(form.get("due_on") ?? "");
-  if (!["sms", "email", "call"].includes(channel) || !note || note.length > 500 || !NEXT_ACTIONS.some(choice => choice === nextAction) || !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
+  if (!["sms", "email", "call"].includes(channel) || !note || note.length > 500 || (!NEXT_ACTIONS.some(choice => choice === nextAction) || (nextAction === "Other" && (!otherAction || otherAction.length > 120))) || !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
     redirect("/alumni-workspace?error=Please%20complete%20all%20fields");
   }
   const { data: person } = await db.from("alumni_people").select("id,is_fictional,sms_allowed,email_allowed,call_allowed").eq("id", alumniId).maybeSingle();
@@ -34,7 +36,7 @@ async function recordFictionalContact(form: FormData) {
   if (cError || !conversation) redirect("/alumni-workspace?error=Could%20not%20save%20conversation");
   const { error: mError } = await db.from("alumni_messages").insert({ conversation_id: conversation.id, direction: "outbound", body: note, delivery_state: "simulated", created_by: user.id });
   if (mError) redirect("/alumni-workspace?error=Could%20not%20save%20message");
-  const { error: fError } = await db.from("alumni_followups").insert({ alumni_id: alumniId, conversation_id: conversation.id, assigned_staff_id: user.id, next_action: nextAction, due_on: dueOn });
+  const { error: fError } = await db.from("alumni_followups").insert({ alumni_id: alumniId, conversation_id: conversation.id, assigned_staff_id: user.id, next_action: finalAction, due_on: dueOn });
   if (fError) redirect("/alumni-workspace?error=Could%20not%20save%20followup");
   await db.from("alumni_events").insert({ alumni_id: alumniId, actor_id: user.id, event_type: "fictional_contact_recorded", object_type: "conversation", object_id: conversation.id, event_data: { channel } });
   revalidatePath("/alumni-workspace");
@@ -78,6 +80,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
             <textarea name="note" maxLength={500} required placeholder="Example: Simulated reply requesting a check-in" className="min-h-24 rounded-lg bg-slate-950 p-3"/>
           </label>
           <label className="grid gap-2 text-sm">Next step<select name="next_action" defaultValue="Check in again" required className="rounded-lg bg-slate-950 p-3">{NEXT_ACTIONS.map(choice=><option key={choice} value={choice}>{choice}</option>)}</select></label>
+       <details className="sm:col-span-2 rounded-lg border border-slate-700 p-3 text-sm"><summary className="cursor-pointer text-sky-200">Other action: add a short description if selected</summary><label className="mt-3 grid gap-1">Describe other action<input name="other_action" maxLength={120} className="rounded-lg bg-slate-950 p-3" placeholder="Only needed when choosing Other"/></label></details>
           <label className="grid gap-2 text-sm">Follow-up date<input name="due_on" type="date" required className="rounded-lg bg-slate-950 p-3"/></label>
           <button type="submit" className="rounded-xl bg-sky-300 p-3 font-semibold text-slate-950 sm:col-span-2">Save fictional contact and follow-up</button>
         </form>
