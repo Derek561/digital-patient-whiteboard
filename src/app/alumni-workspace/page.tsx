@@ -41,12 +41,14 @@ async function recordFictionalContact(form: FormData) {
 export default async function AlumniWorkspace({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   const { db, user, alumniRole } = await requireStaff();
   const params = await searchParams;
-  const [{ data: people, error: peopleError }, { data: conversations }, { data: followups }] = await Promise.all([
+  const [{ data: people, error: peopleError }, { data: conversations }, { data: followups }, { data: staffProfiles }] = await Promise.all([
     db.from("alumni_people").select("id,display_name,sms_allowed,email_allowed,call_allowed").order("display_name"),
-    db.from("alumni_conversations").select("id,alumni_id,channel,created_at").order("created_at", { ascending: false }).limit(30),
-    db.from("alumni_followups").select("id,alumni_id,next_action,due_on,status").eq("status","open").order("due_on").limit(30),
+    db.from("alumni_conversations").select("id,alumni_id,channel,created_at,assigned_staff_id").order("created_at", { ascending: false }).limit(30),
+    db.from("alumni_followups").select("id,alumni_id,next_action,due_on,status,assigned_staff_id").eq("status","open").order("due_on").limit(30),
+    db.from("profiles").select("id,full_name"),
   ]);
   const label = new Map<string, string>((people ?? []).map(p => [p.id, p.display_name] as const));
+  const staffLabel = new Map<string, string>((staffProfiles ?? []).map(p => [p.id, p.full_name || "Staff member"] as const));
   return <main className="min-h-screen bg-slate-950 p-4 text-white sm:p-8">
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="rounded-2xl border border-sky-800 bg-slate-900 p-5">
@@ -78,9 +80,9 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
       </section>
       <div className="grid gap-5 md:grid-cols-2">
         <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5"><h2 className="text-lg font-semibold">Saved conversation history ({conversations?.length ?? 0})</h2>
-        <ul className="mt-3 space-y-2">{(conversations ?? []).map(c=><li className="rounded-lg bg-slate-950 p-3 text-sm" key={c.id}>{label.get(c.alumni_id) ?? "Fictional alumnus"} · {c.channel.toUpperCase()}<p className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</p></li>)}</ul></section>
+        <ul className="mt-3 space-y-2">{(conversations ?? []).map(c=><li className="rounded-lg bg-slate-950 p-3 text-sm" key={c.id}>{label.get(c.alumni_id) ?? "Fictional alumnus"} · {c.channel.toUpperCase()}<p className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()} · Recorded by: {staffLabel.get(c.assigned_staff_id ?? "") ?? "Unknown staff"}</p></li>)}</ul></section>
         <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5"><h2 className="text-lg font-semibold">Shared follow-up queue ({followups?.length ?? 0})</h2>
-        <ul className="mt-3 space-y-2">{(followups ?? []).map(f=><li key={f.id} className="rounded-lg bg-slate-950 p-3 text-sm"><strong>{label.get(f.alumni_id) ?? "Fictional alumnus"}</strong><p>{f.next_action}</p><p className="text-xs text-sky-300">Due {f.due_on}</p></li>)}</ul></section>
+        <ul className="mt-3 space-y-2">{(followups ?? []).map(f=><li key={f.id} className="rounded-lg bg-slate-950 p-3 text-sm"><strong>{label.get(f.alumni_id) ?? "Fictional alumnus"}</strong><p>{f.next_action}</p><p className="text-xs text-sky-300">Due {f.due_on} · Assigned to: {staffLabel.get(f.assigned_staff_id ?? "") ?? "Unassigned"}</p></li>)}</ul></section>
       </div>
     </div>
   </main>;
