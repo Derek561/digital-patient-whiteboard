@@ -6,9 +6,10 @@ async function requireStaff() {
   const db = await createSupabaseServerClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login?next=%2Falumni-workspace");
-  const { data: profile } = await db.from("profiles").select("role,is_active").eq("id", user.id).maybeSingle();
-  if (!profile?.is_active || profile.role !== "admin") redirect("/alumni-demo");
-  return { db, user };
+  const { data: profile } = await db.from("profiles").select("is_active").eq("id", user.id).maybeSingle();
+  const { data: alumniStaff } = await db.from("alumni_staff_roles").select("alumni_role,is_active").eq("staff_id", user.id).maybeSingle();
+  if (!profile?.is_active || !alumniStaff?.is_active) redirect("/login?message=Alumni%20access%20not%20active");
+  return { db, user, alumniRole: alumniStaff.alumni_role };
 }
 
 async function recordFictionalContact(form: FormData) {
@@ -38,7 +39,7 @@ async function recordFictionalContact(form: FormData) {
 }
 
 export default async function AlumniWorkspace({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  const { db, user } = await requireStaff();
+  const { db, user, alumniRole } = await requireStaff();
   const params = await searchParams;
   const [{ data: people, error: peopleError }, { data: conversations }, { data: followups }] = await Promise.all([
     db.from("alumni_people").select("id,display_name,sms_allowed,email_allowed,call_allowed").order("display_name"),
@@ -52,7 +53,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
         <p className="text-xs font-semibold uppercase tracking-wider text-sky-300">Simple Path Recovery</p>
         <h1 className="mt-1 text-3xl font-bold">Alumni Connect | Saved Demo</h1>
         <p className="mt-2 text-sm text-slate-300">Fictional contacts, real database storage. No calls or messages are sent.</p>
-        <p className="mt-2 text-xs text-slate-400">Signed in: {user.email}</p>
+        <p className="mt-2 text-xs text-slate-400">Signed in: {user.email} · {alumniRole === "admin" ? "Administrator" : "Liaison"}</p>
       </header>
       {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional interaction and follow-up saved in Supabase.</p>}
       {params.error && <p role="alert" className="rounded-lg bg-rose-900 p-3">{params.error}</p>}
