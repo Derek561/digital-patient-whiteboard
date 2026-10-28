@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -57,6 +58,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
         <p className="mt-2 text-sm text-slate-300">Fictional contacts, real database storage. No calls or messages are sent.</p>
         <p className="mt-2 text-xs text-slate-400">Signed in: {user.email} · {alumniRole === "admin" ? "Administrator" : "Liaison"} · Shared alumni access</p>
       </header>
+      <Link href="/alumni-workspace/inbox" className="block rounded-xl border border-sky-600 bg-sky-900/30 p-4 font-semibold text-sky-200 hover:bg-sky-900/50">Open shared conversation inbox →</Link>
       {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional interaction and follow-up saved in Supabase.</p>}
       {params.error && <p role="alert" className="rounded-lg bg-rose-900 p-3">{params.error}</p>}
       {peopleError && <p role="alert">Unable to load fictional alumni records.</p>}
