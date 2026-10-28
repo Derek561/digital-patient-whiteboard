@@ -1,3 +1,17 @@
+## October 28, 2026 | GOVERNING PRODUCT RESET AND STOPPING POINT
+
+**Owner directive:** Minimum necessary human input; maximum reliable operational output from a single activity. This is a **complete institutional Alumni Continuity and Program Management System**, designed to survive replacement of all present staff and to improve service to alumni, NOT a manually maintained communications log.
+
+**Canonical product anchor:** [SPR_ALUMNI_GOVERNING_ANCHOR.md](SPR_ALUMNI_GOVERNING_ANCHOR.md). It supersedes older narrow descriptions of the feature/demo roadmap where they conflict. The original content below is retained as historical status/provenance, not a fresh commitment to resume outdated sequencing.
+
+**Required connected system:** discharge enrollment and consent; configurable post-discharge cadence; provider-independent inbound/outbound messaging and call events; attention and priority; staff responsibilities and verified commitments; support, community and outreach; institutional succession; and leadership performance/effectiveness/intelligence with feedback-driven program adjustment. Incoming communications must automatically populate the record through provider adapters (simulated in development), and one event must update all justified downstream state. Engagement volume (particularly alumni-initiated messages) is valuable evidence, but not a verified recovery or service outcome. SAMHSA examples do not imply a universally mandatory fixed cadence; SPR protocols and funder-specific requirements must be distinguished.
+
+**Visual acceptance:** Today's UI and directory were observed working in the browser; support appeared consistent. Inbox contrast/navigation and Record Contact density still failed visual acceptance. Next.js local build passed. This is **not** an end-to-end tested simulator. The isolated Supabase simulator is fiction only; no real SMS/email integration or provider sending is live. Existing scenario definitions alone do not constitute an operating simulator engine.
+
+**Next executable goal:** One connected fictional lifecycle: discharge -> enrollment/consent -> automatic contact schedule -> inbound/outbound simulated communication -> follow-through and support -> verified outcome -> leadership performance and program learning; include staff succession and cross-screen integrity tests. Preserve existing useful code/data, no separate app or new dashboard as a substitute. Resume here after the owner's end-of-day pause.
+
+---
+
 # SPR Alumni Connect | Current Project Status
 
 **Current direction approved:** 2026-10-22  
