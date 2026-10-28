@@ -11,7 +11,8 @@ export async function signIn(formData: FormData) {
     .toLowerCase();
 
   const password = String(formData.get("password") || "");
-  const demoDestination = formData.get("next") === "/alumni-demo" ? "/alumni-demo" : null;
+  const nextRequested = String(formData.get("next") ?? "");
+  const demoDestination = ["/alumni-demo", "/alumni-workspace"].includes(nextRequested) ? nextRequested : null;
 
   if (!email || !password) {
     redirect(
@@ -62,18 +63,7 @@ export async function signIn(formData: FormData) {
     redirect(demoDestination);
   }
 
-  const loginEmail = (user.email || "").toLowerCase();
-
-  const staffCaptureEmails = [
-    "drew@simplepathrecovery.net",
-    "dominic@simplepathrecovery.net",
-  ];
-
-  if (profile?.role === "outreach" || staffCaptureEmails.includes(loginEmail)) {
-    redirect("/patients/new");
-  }
-
-  redirect("/");
+  redirect("/alumni-workspace");
 }
 
 export async function signOut() {
