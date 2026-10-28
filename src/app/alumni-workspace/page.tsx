@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const NEXT_ACTIONS = ["Check in again","Call alumnus","Send text follow-up","Send email follow-up","Return requested call","Provide recovery resources","Assist with housing resources","Assist with employment resources","Assist with transportation resources","Review support request","Invite to alumni meeting","Coordinate with staff","No additional follow-up needed"] as const;
+
 async function requireStaff() {
   const db = await createSupabaseServerClient();
   const { data: { user } } = await db.auth.getUser();
@@ -21,7 +23,7 @@ async function recordFictionalContact(form: FormData) {
   const note = String(form.get("note") ?? "").trim();
   const nextAction = String(form.get("next_action") ?? "").trim();
   const dueOn = String(form.get("due_on") ?? "");
-  if (!["sms", "email", "call"].includes(channel) || !note || note.length > 500 || !nextAction || nextAction.length > 120 || !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
+  if (!["sms", "email", "call"].includes(channel) || !note || note.length > 500 || !NEXT_ACTIONS.some(choice => choice === nextAction) || !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
     redirect("/alumni-workspace?error=Please%20complete%20all%20fields");
   }
   const { data: person } = await db.from("alumni_people").select("id,is_fictional,sms_allowed,email_allowed,call_allowed").eq("id", alumniId).maybeSingle();
@@ -75,7 +77,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
           <label className="grid gap-2 text-sm sm:col-span-2">What happened (fictional)
             <textarea name="note" maxLength={500} required placeholder="Example: Simulated reply requesting a check-in" className="min-h-24 rounded-lg bg-slate-950 p-3"/>
           </label>
-          <label className="grid gap-2 text-sm">Next step<input name="next_action" maxLength={120} required defaultValue="Check in again" className="rounded-lg bg-slate-950 p-3"/></label>
+          <label className="grid gap-2 text-sm">Next step<select name="next_action" defaultValue="Check in again" required className="rounded-lg bg-slate-950 p-3">{NEXT_ACTIONS.map(choice=><option key={choice} value={choice}>{choice}</option>)}</select></label>
           <label className="grid gap-2 text-sm">Follow-up date<input name="due_on" type="date" required className="rounded-lg bg-slate-950 p-3"/></label>
           <button type="submit" className="rounded-xl bg-sky-300 p-3 font-semibold text-slate-950 sm:col-span-2">Save fictional contact and follow-up</button>
         </form>
