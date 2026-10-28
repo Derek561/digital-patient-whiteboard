@@ -1,8 +1,19 @@
-> **CURRENT PROJECT (2026-10-22): SPR Alumni Connect**
-> This repository is being repurposed from the unused Digital Patient Whiteboard to SPR's independent alumni program. The original Whiteboard product details below are **historical only** and not current requirements. The approved five-step roadmap, actual build state, and next action are in [SPR_ALUMNI_PROJECT_STATUS.md](SPR_ALUMNI_PROJECT_STATUS.md).
-> No patient data may be copied into public issues or commits.
+# SPR Alumni Connect | Current Project
+> **Current governing product anchor (October 28, 2026):** [SPR_ALUMNI_GOVERNING_ANCHOR.md](SPR_ALUMNI_GOVERNING_ANCHOR.md). **Engineering status / limitations:** [SPR_ALUMNI_PROJECT_STATUS.md](SPR_ALUMNI_PROJECT_STATUS.md). This project repurposes a former Digital Patient Whiteboard repository. The historical Whiteboard documentation below is archival, not the current operating specification.
+
+**Purpose:** An SPR-owned, enduring Alumni Continuity and Program Management System covering discharge transition, consent, automated communication capture, follow-up cadence, support, outreach/community, institutional staff handover and program intelligence.
+
+**Design law:** **Minimum necessary human input -> maximum trustworthy operational output from every action.** Communications should arrive from provider integrations, populate alumni history and the shared inbox automatically, inform tasks and cadence, and produce reliable performance evidence. Staff manage relationships and verify real-world outcomes rather than reentering messages already received. High communication activity is meaningful engagement evidence, not automatic proof of effectiveness.
+
+**Current local app:** `http://localhost:3000/alumni-workspace` (run from the feature branch). Simulated data ONLY: Supabase `gnawvoxpluyyaqvbpzwd`. Live delivery is disabled. Current dashboard, directory, shared inbox, support and follow-up features are PARTIAL. The end-to-end simulator, program intelligence, cadence and full staff succession tests are NOT yet complete.
+
+**Resume point:** Implement one connected, fictional discharge-to-performance vertical workflow in the existing application, then validate all six program capabilities and cross-screen updates. Do not prioritize adding more manual recording forms. Confirm local `npm run build` and browser behavior for subsequent code changes.
+
+**Data safety:** Keep the public repository free of PHI, real alumni contacts, API secrets and production data. Do not confuse the original Supabase project `ojhovkhnhwlocshpnmts` with the isolated simulator branch. Provider choice/BAA, consent and live sending remain separate authorization and readiness matters.
 
 ---
+
+## Historical Whiteboard documentation (archived reference only)
 
 # Digital Patient Whiteboard / Outreach Movement Board
 
