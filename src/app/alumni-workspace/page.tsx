@@ -45,7 +45,7 @@ export default async function AlumniWorkspace({ searchParams }: { searchParams: 
     db.from("alumni_conversations").select("id,alumni_id,channel,created_at").order("created_at", { ascending: false }).limit(30),
     db.from("alumni_followups").select("id,alumni_id,next_action,due_on,status").eq("status","open").order("due_on").limit(30),
   ]);
-  const label = new Map((people ?? []).map(p => [p.id, p.display_name]));
+  const label = new Map<string, string>((people ?? []).map(p => [p.id, p.display_name] as const));
   return <main className="min-h-screen bg-slate-950 p-4 text-white sm:p-8">
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="rounded-2xl border border-sky-800 bg-slate-900 p-5">
