@@ -24,7 +24,7 @@ export default async function AlumniToday({searchParams}:{searchParams:Promise<{
  const myQueue=(followups??[]).filter(f=>f.assigned_staff_id===user.id);
  const due=(followups??[]).filter(f=>f.due_on<=new Date().toISOString().slice(0,10));
  const display=profile.full_name||user.email?.split("@")[0]||"Staff";
- const routes=[{label:"Today",href:"/alumni-workspace",sym:"◫",active:view==="today"},{label:"Inbox",href:"/alumni-workspace/inbox",sym:"✉",active:false},{label:"Alumni",href:"/alumni-workspace?view=directory",sym:"◎",active:view==="directory"},{label:"Support",href:"/alumni-workspace/support",sym:"♡",active:false},{label:"Record contact",href:"/alumni-workspace/record",sym:"＋",active:false}];
+ const routes=[{label:"Today",href:"/alumni-workspace",sym:"◫",active:view==="today"},{label:"Inbox",href:"/alumni-workspace/inbox",sym:"✉",active:false},{label:"Alumni",href:"/alumni-workspace?view=directory",sym:"◎",active:view==="directory"},{label:"Support",href:"/alumni-workspace/support",sym:"♡",active:false},{label:"Lifecycle",href:"/alumni-workspace/lifecycle",sym:"◷",active:false},{label:"Record contact",href:"/alumni-workspace/record",sym:"＋",active:false}];
  return <main className="ac-app">
  <aside className="ac-sidebar"><div className="ac-brand"><div className="ac-brand-mark">SPR</div><div><strong>Alumni Connect</strong><small>Simple Path Recovery</small></div></div>
  <div className="ac-demo">FICTIONAL SIMULATOR</div><nav className="ac-nav" aria-label="Main navigation">{routes.map(r=><Link href={r.href} className={r.active?"ac-nav-active":""} key={r.label}><span>{r.sym}</span>{r.label}</Link>)}</nav>
