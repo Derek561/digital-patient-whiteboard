@@ -11,6 +11,9 @@ create table if not exists public.alumni_cadence (
  unique(alumni_id,checkpoint)
 );
 alter table public.alumni_cadence enable row level security;
+-- PostgreSQL GRANT is required in addition to row-level security for Data API reads.
+revoke all on table public.alumni_cadence from anon, authenticated, service_role;
+grant select, update on table public.alumni_cadence to authenticated;
 create policy "cadence_staff_read" on public.alumni_cadence for select to authenticated
  using (exists(select 1 from public.alumni_staff_roles r where r.staff_id=(select auth.uid()) and r.is_active and r.alumni_role in ('admin','liaison')));
 create policy "cadence_staff_update" on public.alumni_cadence for update to authenticated
