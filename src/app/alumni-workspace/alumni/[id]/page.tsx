@@ -58,12 +58,13 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
  const {id}=await params;
  const query=await searchParams;
  const {db,user}=await authorize();
- const [{data:person},{data:conversations},{data:tasks},{data:profiles},{data:roles}]=await Promise.all([
-   db.from("alumni_people").select("id,display_name,sms_allowed,email_allowed,call_allowed").eq("id",id).maybeSingle(),
+ const [{data:person},{data:conversations},{data:tasks},{data:profiles},{data:roles},{data:cadence}]=await Promise.all([
+   db.from("alumni_people").select("id,display_name,discharge_on,sms_allowed,email_allowed,call_allowed").eq("id",id).maybeSingle(),
    db.from("alumni_conversations").select("id,channel,created_at").eq("alumni_id",id).order("created_at",{ascending:true}),
    db.from("alumni_followups").select("id,next_action,due_on,status,assigned_staff_id,completed_by,completed_at,created_at").eq("alumni_id",id).order("created_at",{ascending:false}),
    db.from("profiles").select("id,full_name"),
-   db.from("alumni_staff_roles").select("staff_id,alumni_role").eq("is_active",true)
+   db.from("alumni_staff_roles").select("staff_id,alumni_role").eq("is_active",true),
+   db.from("alumni_cadence").select("id,checkpoint,due_on,status").eq("alumni_id",id).order("due_on")
  ]);
  if (!person) redirect("/alumni-workspace");
  const names=new Map<string,string>((profiles??[]).map(p=>[p.id,p.full_name || "Staff"] as const));
@@ -84,6 +85,7 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
    {query.saved&&<p role="status" className="rounded-lg bg-emerald-900 p-3">Follow-up saved.</p>}
    {query.completed&&<p role="status" className="rounded-lg bg-emerald-900 p-3">Follow-up completed and attributed to the signed-in staff member.</p>}
    {query.error&&<p role="alert" className="rounded-lg bg-rose-900 p-3">{query.error}</p>}
+   <section className="ac-card"><div className="ac-card-head"><div><h2>Discharge and engagement schedule</h2><p>Discharged: {person.discharge_on??"Not recorded"} · Scheduled outreach is not proof of contact.</p></div><Link href={"/alumni-workspace/lifecycle?alumni="+id} className="ac-link">Manage lifecycle →</Link></div><div className="ac-task-list">{(cadence??[]).map(c=><div className="ac-task" key={c.id}><span className="ac-task-dot team"/><span><strong>{c.checkpoint}</strong><small>Due {c.due_on} · {c.status}</small></span></div>)}{!(cadence??[]).length&&<p className="ac-empty">No discharge schedule on file.</p>}</div></section>
    <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
     <h2 className="text-xl font-semibold">Complete contact history ({history.length})</h2>
     <p className="mt-1 text-xs text-slate-400">Messages from separate SMS, email and call conversations appear together. Every entry retains its origin.</p>
