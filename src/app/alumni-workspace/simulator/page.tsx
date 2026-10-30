@@ -1,3 +1,4 @@
+import {randomUUID} from "node:crypto";
 import Link from "next/link";
 import {redirect} from "next/navigation";
 import {revalidatePath} from "next/cache";
@@ -19,6 +20,8 @@ async function receive(form:FormData){
  "use server";
  const {db,user}=await session();
  const alumniId=String(form.get("alumni")??"");
+ const eventId=String(form.get("event_id")??"");
+ if(!/^[0-9a-f-]{36}$/i.test(eventId))redirect("/alumni-workspace/simulator?error=Invalid%20event%20identifier");
  const channel=String(form.get("channel")??"");
  const scenario=simulatorScenarios.find(s=>s.id===String(form.get("scenario")??""));
  if(!scenario||!["sms","email"].includes(channel))redirect("/alumni-workspace/simulator?error=Invalid%20scenario");
@@ -31,22 +34,27 @@ async function receive(form:FormData){
   if(error||!created)redirect("/alumni-workspace/simulator?error=Conversation%20failed");
   conversation=created;
  }
- const {data:message,error:messageError}=await db.from("alumni_messages").insert({conversation_id:conversation.id,direction:"inbound",body:scenario.body,delivery_state:"simulated",created_by:user.id}).select("id").single();
+ const providerId="sim:"+eventId;
+ const {data:priorMessage}=await db.from("alumni_messages").select("id").eq("provider_message_id",providerId).maybeSingle();
+ if(priorMessage)redirect("/alumni-workspace/inbox?thread="+conversation.id+"&duplicate=1");
+ const {data:message,error:messageError}=await db.from("alumni_messages").insert({conversation_id:conversation.id,direction:"inbound",body:scenario.body,delivery_state:"simulated",created_by:user.id,provider_message_id:providerId}).select("id").single();
+ if(messageError?.code==="23505")redirect("/alumni-workspace/inbox?thread="+conversation.id+"&duplicate=1");
  if(messageError||!message)redirect("/alumni-workspace/simulator?error=Message%20failed");
  const category= scenario.id==="transport"?"Transportation":scenario.id==="housing"?"Housing":scenario.id==="employment"?"Employment":scenario.id==="meeting"?"Community meeting":null;
- await db.from("alumni_events").insert({alumni_id:alumniId,actor_id:user.id,event_type:"simulated_inbound_triage",object_type:"message",object_id:message.id,event_data:{scenario:scenario.id,priority:scenario.priority,channel,source:"simulation"}});
+ const {error:eventError}=await db.from("alumni_events").insert({alumni_id:alumniId,actor_id:user.id,event_type:"simulated_inbound_triage",object_type:"message",object_id:message.id,event_data:{scenario:scenario.id,priority:scenario.priority,channel,source:"simulation"}});
+ if(eventError)redirect("/alumni-workspace/inbox?thread="+conversation.id+"&error=Message%20saved%20but%20audit%20failed");
  if(category){
   const {data:existing}=await db.from("alumni_support_requests").select("id").eq("alumni_id",alumniId).eq("category",category).in("status",["open","in_progress"]).limit(1).maybeSingle();
   if(!existing){
    const {error}=await db.from("alumni_support_requests").insert({alumni_id:alumniId,assigned_staff_id:conversation.assigned_staff_id??user.id,category,summary:scenario.body,status:"open"});
-   if(error)redirect("/alumni-workspace/simulator?error=Support%20creation%20failed");
+   if(error)redirect("/alumni-workspace/inbox?thread="+conversation.id+"&error=Message%20saved%20but%20support%20creation%20failed");
   }
  }
  if(scenario.action){
   const {data:existing}=await db.from("alumni_followups").select("id").eq("alumni_id",alumniId).eq("next_action",scenario.action).eq("status","open").limit(1).maybeSingle();
   if(!existing){
    const {error}=await db.from("alumni_followups").insert({alumni_id:alumniId,conversation_id:conversation.id,assigned_staff_id:conversation.assigned_staff_id??user.id,next_action:scenario.action,due_on:new Date().toISOString().slice(0,10)});
-   if(error)redirect("/alumni-workspace/simulator?error=Followup%20creation%20failed");
+   if(error)redirect("/alumni-workspace/inbox?thread="+conversation.id+"&error=Message%20saved%20but%20followup%20creation%20failed");
   }
  }
  revalidatePath("/alumni-workspace");
@@ -61,7 +69,7 @@ export default async function Simulator({searchParams}:{searchParams:Promise<{er
  return <main className="ac-app"><aside className="ac-sidebar"><div className="ac-brand"><div className="ac-brand-mark">SPR</div><div><strong>Alumni Connect</strong><small>Simple Path Recovery</small></div></div><div className="ac-demo">FICTIONAL SIMULATOR</div><nav className="ac-nav"><Link href="/alumni-workspace">Today</Link><Link href="/alumni-workspace/inbox">Inbox</Link><Link href="/alumni-workspace?view=directory">Alumni</Link><Link href="/alumni-workspace/support">Support</Link><Link className="ac-nav-active" href="/alumni-workspace/simulator">Simulate message</Link></nav></aside><div className="ac-main"><header className="ac-topbar"><div><p className="ac-eyebrow">FICTIONAL COMMUNICATION ENGINE</p><h1>Incoming message simulator</h1><p>Generate a fictional inbound event, automatically create needed work, then open the shared conversation.</p></div><span className="ac-sim-pill">● Simulator</span></header>
  {query.error&&<p role="alert">{query.error}</p>}
  <section className="ac-card"><div className="ac-card-head"><div><h2>Receive fictional message</h2><p>Nothing is sent to a real phone or email address.</p></div></div>
- <form action={receive} style={{maxWidth:540,display:"grid",gap:16}}>
+ <form action={receive} style={{maxWidth:540,display:"grid",gap:16}}><input type="hidden" name="event_id" value={randomUUID()}/>
  <label>Alumnus<select className="ac-input" name="alumni">{(people??[]).map(p=><option value={p.id} key={p.id}>{p.display_name}</option>)}</select></label>
  <label>Incoming channel<select className="ac-input" name="channel"><option value="sms">SMS</option><option value="email">Email</option></select></label>
  <label>Fictional incoming event<select className="ac-input" name="scenario">{simulatorScenarios.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
