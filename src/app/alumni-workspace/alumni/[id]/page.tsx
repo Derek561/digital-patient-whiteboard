@@ -58,13 +58,15 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
  const {id}=await params;
  const query=await searchParams;
  const {db,user}=await authorize();
- const [{data:person},{data:conversations},{data:tasks},{data:profiles},{data:roles},{data:cadence}]=await Promise.all([
+ const [{data:person},{data:conversations},{data:tasks},{data:profiles},{data:roles},{data:cadence},{data:support},{data:events}]=await Promise.all([
    db.from("alumni_people").select("id,display_name,discharge_on,sms_allowed,email_allowed,call_allowed").eq("id",id).maybeSingle(),
    db.from("alumni_conversations").select("id,channel,created_at").eq("alumni_id",id).order("created_at",{ascending:true}),
    db.from("alumni_followups").select("id,next_action,due_on,status,assigned_staff_id,completed_by,completed_at,created_at").eq("alumni_id",id).order("created_at",{ascending:false}),
    db.from("profiles").select("id,full_name"),
    db.from("alumni_staff_roles").select("staff_id,alumni_role").eq("is_active",true),
-   db.from("alumni_cadence").select("id,checkpoint,due_on,status").eq("alumni_id",id).order("due_on")
+   db.from("alumni_cadence").select("id,checkpoint,due_on,status").eq("alumni_id",id).order("due_on"),
+   db.from("alumni_support_requests").select("id,category,summary,status,assigned_staff_id").eq("alumni_id",id),
+   db.from("alumni_events").select("id,actor_id,event_type,object_id,event_data,occurred_at").eq("alumni_id",id).in("event_type",["support_status_changed","followup_completed"]).order("occurred_at",{ascending:false}).limit(30)
  ]);
  if (!person) redirect("/alumni-workspace");
  const names=new Map<string,string>((profiles??[]).map(p=>[p.id,p.full_name || "Staff"] as const));
@@ -86,13 +88,14 @@ export default async function AlumniHistory({params,searchParams}:{params:Promis
    {query.completed&&<p role="status" className="rounded-lg bg-emerald-900 p-3">Follow-up completed and attributed to the signed-in staff member.</p>}
    {query.error&&<p role="alert" className="rounded-lg bg-rose-900 p-3">{query.error}</p>}
    <section className="ac-card"><div className="ac-card-head"><div><h2>Discharge and engagement schedule</h2><p>Discharged: {person.discharge_on??"Not recorded"} · Scheduled outreach is not proof of contact.</p></div><Link href={"/alumni-workspace/lifecycle?alumni="+id} className="ac-link">Manage lifecycle →</Link></div><div className="ac-task-list">{(cadence??[]).map(c=><div className="ac-task" key={c.id}><span className="ac-task-dot team"/><span><strong>{c.checkpoint}</strong><small>Due {c.due_on} · {c.status}</small></span></div>)}{!(cadence??[]).length&&<p className="ac-empty">No discharge schedule on file.</p>}</div></section>
+   <section className="ac-card"><div className="ac-card-head"><div><h2>Support and accountability</h2><p>Current support state and recorded staff actions. A reply or completed task does not by itself prove resolution.</p></div></div><div className="ac-task-list">{(support??[]).map(r=><div key={r.id} className="ac-task"><span className="ac-task-dot team"/><span><strong>{r.category} · {r.status.replace("_"," ")}</strong><small>{r.summary} · Assigned: {names.get(r.assigned_staff_id??"")??"Unassigned"}</small></span></div>)}{!(support??[]).length&&<p className="ac-empty">No support requests recorded.</p>}</div><h3 className="mt-5 font-semibold">Recorded actions</h3><div className="ac-task-list">{(events??[]).map(e=><div className="ac-task" key={e.id}><span className="ac-task-dot team"/><span><strong>{e.event_type==="support_status_changed"?"Support status changed":"Follow-up completed"}</strong><small>{e.event_type==="support_status_changed"?String(e.event_data?.from??"unknown")+" → "+String(e.event_data?.to??"unknown"):"Completion recorded"} · {names.get(e.actor_id??"")??"Staff"} · {new Date(e.occurred_at).toLocaleString()}</small></span></div>)}{!(events??[]).length&&<p className="ac-empty">No support or completion events recorded yet.</p>}</div></section>
    <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
     <h2 className="text-xl font-semibold">Complete contact history ({history.length})</h2>
     <p className="mt-1 text-xs text-slate-400">Messages from separate SMS, email and call conversations appear together. Every entry retains its origin.</p>
     <ol className="mt-4 space-y-3">{history.map(m=><li key={m.id} className="rounded-xl border border-slate-700 bg-slate-950 p-3">
       <div className="flex flex-wrap justify-between gap-2 text-sm font-semibold"><span>{(channels.get(m.conversation_id)??"contact").toUpperCase()} · {m.direction==="inbound"?"Fictional incoming reply":"Staff test message"}</span><span className="text-xs font-normal text-slate-400">{new Date(m.created_at).toLocaleString()}</span></div>
       <p className="mt-2 whitespace-pre-wrap break-words text-sm">{m.body}</p>
-      <p className="mt-2 text-xs text-sky-300">Recorded by: {names.get(m.created_by??"")??"Unknown staff"}</p>
+      <p className="mt-2 text-xs text-sky-300">{m.direction==="inbound"?"Processed by: ":"Recorded by: "}{names.get(m.created_by??"")??"Unknown staff"}</p>
     </li>)}</ol>
    </section>
    <section className="rounded-2xl border border-slate-700 bg-slate-900 p-5">
