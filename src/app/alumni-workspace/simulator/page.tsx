@@ -31,7 +31,7 @@ async function receive(form:FormData){
   if(error||!created)redirect("/alumni-workspace/simulator?error=Conversation%20failed");
   conversation=created;
  }
- const {data:message,error:messageError}=await db.from("alumni_messages").insert({conversation_id:conversation.id,direction:"inbound",body:scenario.body,delivery_state:"simulated",created_by:null}).select("id").single();
+ const {data:message,error:messageError}=await db.from("alumni_messages").insert({conversation_id:conversation.id,direction:"inbound",body:scenario.body,delivery_state:"simulated",created_by:user.id}).select("id").single();
  if(messageError||!message)redirect("/alumni-workspace/simulator?error=Message%20failed");
  const category= scenario.id==="transport"?"Transportation":scenario.id==="housing"?"Housing":scenario.id==="employment"?"Employment":scenario.id==="meeting"?"Community meeting":null;
  await db.from("alumni_events").insert({alumni_id:alumniId,actor_id:user.id,event_type:"simulated_inbound_triage",object_type:"message",object_id:message.id,event_data:{scenario:scenario.id,priority:scenario.priority,channel,source:"simulation"}});
