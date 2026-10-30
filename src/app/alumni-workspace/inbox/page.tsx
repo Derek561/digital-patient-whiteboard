@@ -108,7 +108,7 @@ export default async function SharedInbox({ searchParams }: { searchParams: Prom
             {messagesError && <p className="mt-3 text-rose-300">Could not load this conversation.</p>}
             <ol className="mt-4 space-y-3">{(messages ?? []).map(m =>
               <li key={m.id} className={`max-w-[90%] rounded-xl p-3 text-sm ${m.direction === "outbound" ? "ml-auto bg-sky-900/50" : "bg-slate-800"}`}>
-                <p className="text-xs font-semibold text-sky-200">{m.direction === "inbound" ? ""Fictional alumnus · incoming" : "SPR staff · simulated response"}</p>
+                <p className="text-xs font-semibold text-sky-200">{m.direction === "inbound" ? "Fictional alumnus · incoming" : "SPR staff · simulated response"}</p>
                 <p className="mt-2 whitespace-pre-wrap break-words">{m.body}</p>
                 <p className="mt-2 text-xs text-slate-400">{new Date(m.created_at).toLocaleString()} · {m.direction==="inbound"?"Processed by ":"Recorded by "}{staffNames.get(m.created_by ?? "") ?? "Unknown staff"}</p>
               </li>)}</ol>
