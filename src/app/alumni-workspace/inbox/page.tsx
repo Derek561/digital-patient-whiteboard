@@ -76,7 +76,7 @@ async function progressSupport(form:FormData){
  revalidatePath("/alumni-workspace");revalidatePath("/alumni-workspace/support");revalidatePath("/alumni-workspace/alumni/"+conversation.alumni_id);
  redirect("/alumni-workspace/inbox?thread="+conversationId+"&supportdone=1");
 }
-export default async function SharedInbox({ searchParams }: { searchParams: Promise<{ thread?: string; saved?: string; error?: string; taskdone?:string; supportdone?:string }> }) {
+export default async function SharedInbox({ searchParams }: { searchParams: Promise<{ thread?: string; saved?: string; error?: string; taskdone?:string; supportdone?:string; duplicate?:string }> }) {
   const { db, user } = await staffSession();
   const params = await searchParams;
   const [{ data: people }, { data: conversations }, { data: staffProfiles }] = await Promise.all([
@@ -105,6 +105,7 @@ export default async function SharedInbox({ searchParams }: { searchParams: Prom
         <p className="mt-2 text-xs text-slate-400">Signed in: {user.email}</p>
         <Link href="/alumni-workspace" className="mt-3 inline-block text-sm text-sky-300 underline">Back to staff workspace</Link>
       </header>
+      {params.duplicate && <p role="status" className="rounded-lg bg-sky-900 p-3">This fictional incoming event was already received. No duplicate message was created.</p>}
       {params.supportdone && <p role="status" className="rounded-lg bg-emerald-900 p-3">Support status updated.</p>}
       {params.taskdone && <p role="status" className="rounded-lg bg-emerald-900 p-3">Follow-up completed by the signed-in staff member.</p>}
       {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional message saved to the shared conversation.</p>}
