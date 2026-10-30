@@ -58,7 +58,25 @@ async function finishFollowup(form:FormData) {
  revalidatePath("/alumni-workspace");revalidatePath("/alumni-workspace/alumni/"+conversation.alumni_id);
  redirect("/alumni-workspace/inbox?thread="+conversationId+"&taskdone=1");
 }
-export default async function SharedInbox({ searchParams }: { searchParams: Promise<{ thread?: string; saved?: string; error?: string; taskdone?:string }> }) {
+async function progressSupport(form:FormData){
+ "use server";
+ const {db,user}=await staffSession();
+ const conversationId=String(form.get("conversation")??"");
+ const requestId=String(form.get("request_id")??"");
+ const action=String(form.get("action")??"");
+ if(!/^[0-9a-f-]{36}$/i.test(conversationId)||!/^[0-9a-f-]{36}$/i.test(requestId)||!["acknowledge","resolve"].includes(action))redirect("/alumni-workspace/inbox?error=Invalid%20support%20action");
+ const {data:conversation}=await db.from("alumni_conversations").select("id,alumni_id").eq("id",conversationId).maybeSingle();
+ const {data:request}=await db.from("alumni_support_requests").select("id,alumni_id,status").eq("id",requestId).maybeSingle();
+ if(!conversation||!request||request.alumni_id!==conversation.alumni_id)redirect("/alumni-workspace/inbox?error=Support%20record%20mismatch");
+ const target=action==="acknowledge"?"in_progress":"resolved";
+ if((action==="acknowledge"&&request.status!=="open")||(action==="resolve"&&(request.status!=="in_progress"||String(form.get("confirmation"))!=="confirmed")))redirect("/alumni-workspace/inbox?thread="+conversationId+"&error=Support%20confirmation%20required");
+ const {data:updated,error}=await db.from("alumni_support_requests").update({status:target}).eq("id",requestId).eq("status",request.status).eq("alumni_id",conversation.alumni_id).select("id").maybeSingle();
+ if(error||!updated)redirect("/alumni-workspace/inbox?thread="+conversationId+"&error=Support%20update%20failed");
+ await db.from("alumni_events").insert({alumni_id:conversation.alumni_id,actor_id:user.id,event_type:"support_status_changed",object_type:"support_request",object_id:requestId,event_data:{from:request.status,to:target,source:"shared_inbox",confirmation:action==="resolve"?"staff_attested":null}});
+ revalidatePath("/alumni-workspace");revalidatePath("/alumni-workspace/support");revalidatePath("/alumni-workspace/alumni/"+conversation.alumni_id);
+ redirect("/alumni-workspace/inbox?thread="+conversationId+"&supportdone=1");
+}
+export default async function SharedInbox({ searchParams }: { searchParams: Promise<{ thread?: string; saved?: string; error?: string; taskdone?:string; supportdone?:string }> }) {
   const { db, user } = await staffSession();
   const params = await searchParams;
   const [{ data: people }, { data: conversations }, { data: staffProfiles }] = await Promise.all([
@@ -87,6 +105,7 @@ export default async function SharedInbox({ searchParams }: { searchParams: Prom
         <p className="mt-2 text-xs text-slate-400">Signed in: {user.email}</p>
         <Link href="/alumni-workspace" className="mt-3 inline-block text-sm text-sky-300 underline">Back to staff workspace</Link>
       </header>
+      {params.supportdone && <p role="status" className="rounded-lg bg-emerald-900 p-3">Support status updated.</p>}
       {params.taskdone && <p role="status" className="rounded-lg bg-emerald-900 p-3">Follow-up completed by the signed-in staff member.</p>}
       {params.saved && <p role="status" className="rounded-lg bg-emerald-900 p-3">Fictional message saved to the shared conversation.</p>}
       {params.error && <p role="alert" className="rounded-lg bg-rose-900 p-3">{params.error}</p>}
@@ -117,7 +136,7 @@ export default async function SharedInbox({ searchParams }: { searchParams: Prom
               <p className="mt-1 text-xs text-slate-600">Open support and follow-ups, visible while staff communicate. A message alone does not prove a request was resolved.</p>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div><h4 className="text-sm font-bold">Support ({relatedSupport?.length??0})</h4>
-                 {(relatedSupport??[]).map(r=><div key={r.id} className="mt-2 rounded-lg border border-slate-200 p-2 text-sm"><strong>{r.category}</strong><p>{r.summary}</p><p className="text-xs text-slate-600">{r.status.replace("_"," ")} · {staffNames.get(r.assigned_staff_id??"")??"Unassigned"}</p></div>)}
+                 {(relatedSupport??[]).map(r=><div key={r.id} className="mt-2 rounded-lg border border-slate-200 p-2 text-sm"><strong>{r.category}</strong><p>{r.summary}</p><p className="text-xs text-slate-600">{r.status.replace("_"," ")} · {staffNames.get(r.assigned_staff_id??"")??"Unassigned"}</p><form action={progressSupport} className="mt-2 grid gap-2"><input type="hidden" name="conversation" value={selected.id}/><input type="hidden" name="request_id" value={r.id}/>{r.status==="open"?<button name="action" value="acknowledge" className="rounded bg-teal-700 px-3 py-2 text-xs font-semibold text-white">Acknowledge · begin work</button>:<><label className="flex items-start gap-2 text-xs"><input type="checkbox" name="confirmation" value="confirmed" required/>I confirm this fictional support need was resolved, beyond just sending a reply.</label><button name="action" value="resolve" className="rounded bg-teal-700 px-3 py-2 text-xs font-semibold text-white">Confirm resolved</button></>}</form></div>)}
                  {!(relatedSupport??[]).length&&<p className="mt-2 text-xs">No open support requests.</p>}
                  <Link href="/alumni-workspace/support" className="mt-2 inline-block text-sm text-blue-700 underline">Manage support →</Link>
                 </div>
